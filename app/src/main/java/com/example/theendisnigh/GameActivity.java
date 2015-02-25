@@ -30,13 +30,13 @@ public class GameActivity extends ActionBarActivity {
 	@Override
     protected void onPause(){
         super.onPause();
-        sv.Pause();
+        sv.pause();
     }
      
     @Override
     protected void onResume(){
         super.onResume();
-        sv.Resume();
+        sv.resume();
     }
 
 }

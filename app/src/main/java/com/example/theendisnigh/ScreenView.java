@@ -7,18 +7,109 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.TextView;
 
 //@SuppressLint("WrongCall")//Needed to suppress the lint error
-public class ScreenView extends SurfaceView implements Runnable
+public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 {
+    class GameThread extends Thread {
+        private SurfaceHolder m_surfaceHolder;
+        private Handler handler;
+        private Context context;
+        private boolean running;
+        private boolean paused;
+
+        public GameThread(SurfaceHolder h, Context c, Handler hand) {
+            this.m_surfaceHolder = h;
+            this.context = c;
+            this.handler = hand;
+        }
+
+        public boolean isRunning() {
+            return running;
+        }
+
+        public void setRunning(boolean run) {
+            running = run;
+        }
+
+        public boolean isPaused()
+        {
+            return paused;
+        }
+        public void setPaused(boolean set)
+        {
+            paused = set;
+        }
+
+        @Override
+        public void run()
+        {
+            boolean doPause = false;
+            boolean doResume = true;
+            //Remove conflict between the UI thread and the game thread.
+            init();
+            while (running)
+            {
+                Canvas c = null;
+                try{
+                    if(!paused){
+                        c = m_surfaceHolder.lockCanvas(null);
+                        synchronized (m_surfaceHolder)
+                        {
+                            if(doResume)
+                            {
+                                doPause = true;
+                                doResume = false;
+                            }
+                            Update();
+                            c.drawARGB(255, 0, 0, 0);
+                            Draw(c);
+                        }
+                    }
+                    else
+                    {
+                        if(doPause) {
+                            doResume = true;
+                            doPause = false;
+                            c = m_surfaceHolder.lockCanvas(null);
+                            synchronized (m_surfaceHolder) {
+
+                                Paint p = new Paint();
+                                p.setStyle(Paint.Style.FILL);
+                                p.setColor(Color.BLACK);
+                                p.setAlpha(125);
+                                c.drawRect(0, 0, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT, p);
+                                p = null;
+                            }
+                        }
+                        paused = m_player.m_shouldPause;
+                    }
+                }catch(Exception e)
+                {
+                    running = false;
+                }
+                finally{
+                    if(c!= null)
+                    {
+                        m_surfaceHolder.unlockCanvasAndPost(c);
+                    }
+                }
+
+            }
+        }
+    }
     private final int PLAY_AREA_WIDTH = 2560;
     private final int PLAY_AREA_HEIGHT = 2560;
     private final int MAX_PLAYER_BULLETS = 20;
@@ -31,8 +122,7 @@ public class ScreenView extends SurfaceView implements Runnable
     private Bitmap m_background;
     private Quadtree m_quadTree;
 	SurfaceHolder holder;
-	private boolean ok = false;
-	Thread t = null;
+	GameThread thread;
 	Paint paint = new Paint();
 
 	//Width and height of screen
@@ -69,7 +159,15 @@ public class ScreenView extends SurfaceView implements Runnable
 		holder = getHolder();
 		m_fieldWidth = PLAY_AREA_WIDTH;
         m_fieldHeight = PLAY_AREA_HEIGHT;
-
+        holder.addCallback(this);
+        thread = new GameThread(holder, context, new Handler()
+        {
+            @Override
+            public void handleMessage(Message m)
+            {
+                //@Todo handle messages
+            }
+        });
         Bitmap background = loadBitmap(R.drawable.playareatest, context);
         m_background = Bitmap.createScaledBitmap(background, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT, true);
         m_spawner = new EnemySpawner(10, m_fieldWidth, m_fieldHeight);
@@ -133,53 +231,45 @@ public class ScreenView extends SurfaceView implements Runnable
         m_quadTree = new Quadtree(0, new Rect(0, 0, width, height));
 
     }
-	@Override
-	public void run() 
-	{
-		//Remove conflict between the UI thread and the game thread.
-		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-		init();
-		while (ok)
-		{
-			//perform canvas drawing
-			if(!holder.getSurface().isValid())
-			{//if surface is not valid
-				continue;//skip anything below it
-			}
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+    {
 
-			Update();
-			Canvas c = holder.lockCanvas(); //Lock canvas, paint canvas, unlock canvas
-            c.drawARGB(255, 0, 0, 0);
-			Draw(c);	
-			holder.unlockCanvasAndPost(c);
-			
-		}
+    }
+    @Override
+    public void surfaceCreated(SurfaceHolder holder)
+    {
+        start();
+    }
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder)
+    {
+        stop();
+    }
+    public void stop()
+    {
+        thread.setRunning(false);
+        try {
+            thread.join();
+        }catch (InterruptedException e)
+        {
+
+        }
+    }
+	public void pause()
+	{
+		thread.setPaused(true);
 	}
 
-	public void Pause()
+	public void resume()
 	{
-		ok = false;
-		while(true)
-		{
-			try
-			{
-				t.join();
-			}
-			catch(InterruptedException e)
-			{
-				e.printStackTrace();
-			}
-			break;
-		}
-		t = null;
+		thread.setPaused(false);
 	}
-
-	public void Resume()
-	{
-		ok = true;
-		t = new Thread(this);
-		t.start();
-	}
+    public void start()
+    {
+        thread.setRunning(true);
+        thread.start();
+    }
     public void updateQuadTree()
     {
         m_quadTree.clear();
@@ -294,7 +384,10 @@ public class ScreenView extends SurfaceView implements Runnable
         updateQuadTree();
         bulletCollision();
         playerCollision();
-
+        if(m_player.m_shouldPause)
+        {
+            pause();
+        }
 
 	}
     private void UpdateBullets()

@@ -115,7 +115,7 @@ public class EnemySpawner
             interpolateWeight();
             for(Enemy col : c)
             {
-                if(col.m_isActive)
+                if(!col.m_isActive)
                 {
                     col.setFromConfig(getRandomEnemy());
                     Vector2F point = m_spawnLocations.get(new Random().nextInt(NUM_SPAWN_POINTS));
