@@ -14,7 +14,6 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
-import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -311,6 +310,10 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                         }, 3000); //Wait 5 seconds
                     }else
                     {
+                        if(getContext() instanceof GameActivity)
+                        {
+                            ((GameActivity) getContext()).onDeath();
+                        }
                         //Do something here to move to highscores
 
                     }

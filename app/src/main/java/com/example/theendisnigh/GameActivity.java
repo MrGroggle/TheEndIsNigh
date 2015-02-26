@@ -1,14 +1,15 @@
 package com.example.theendisnigh;
 
-import android.support.v7.app.ActionBarActivity;
+import android.app.Activity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class GameActivity extends ActionBarActivity {
+public class GameActivity extends Activity {
 	
 	private ScreenView sv;
+    private HighscoresDialogFragment hf;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) 
 	{
@@ -24,7 +25,6 @@ public class GameActivity extends ActionBarActivity {
          
         super.onCreate(savedInstanceState);  
         setContentView(R.layout.game_layout);
-        
         sv = (ScreenView) findViewById(R.id.screenView);
 	}
 	@Override
@@ -37,6 +37,12 @@ public class GameActivity extends ActionBarActivity {
     protected void onResume(){
         super.onResume();
         sv.resume();
+    }
+
+    protected void onDeath()
+    {
+        hf = new HighscoresDialogFragment();
+        hf.show(getFragmentManager(), "HighscoresFragment");
     }
 
 }

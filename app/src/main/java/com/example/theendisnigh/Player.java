@@ -86,7 +86,7 @@ public class Player extends Collidable implements MovedSubscriber
         else if(type == 1)
             m_shooting = false;
 
-        if(!m_moving && !m_shooting)
+        if(!m_moving && !m_shooting && m_isActive)
             m_shouldPause = true;
 	}
 	public void draw(Paint p, Canvas c)
