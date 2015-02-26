@@ -120,7 +120,7 @@ public class JoystickView extends View
 				if (m_pointerID != BAD_POINTER)
 				{
 					//Add code for moving handle to centre?
-                    returnStickToCentre();
+                    returnStickToCentre(m_pointerID);
 					setPointerID(BAD_POINTER);
 				}
 				break;
@@ -138,7 +138,7 @@ public class JoystickView extends View
 					if (pointerId == this.m_pointerID) 
 					{
 						//Add code for moving handle to centre?
-                        returnStickToCentre();
+                        returnStickToCentre(m_pointerID);
 						setPointerID(BAD_POINTER);
 						return true;
 					}
@@ -281,7 +281,7 @@ public class JoystickView extends View
     	}
     }
 
-    private void returnStickToCentre()
+    private void returnStickToCentre(int pointerID)
     {
         //@TODO Build this into options
         if(m_returnHandle)
@@ -304,7 +304,7 @@ public class JoystickView extends View
 
                         if(m_subscriber != null && j == frames - 1)
                         {
-                           m_subscriber.onCentred();    // Notify subscriber that handle has  returned
+                           m_subscriber.onCentred(m_stickType);    // Notify subscriber that handle has  returned
                         }
 
                     }
@@ -314,7 +314,7 @@ public class JoystickView extends View
 
         if(m_subscriber != null)
         {
-            m_subscriber.onReleased();  //Notify subscriber handle is released (regardless of if option set)
+            m_subscriber.onReleased();
         }
     }
 }

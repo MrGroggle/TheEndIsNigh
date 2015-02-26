@@ -12,6 +12,9 @@ public class Player extends Collidable implements MovedSubscriber
     private long lastTime = System.currentTimeMillis() - SHOOT_PERIOD;
     public boolean m_shouldCreateBullet = false;
     public boolean m_killedByEnemy = false;
+    private boolean m_moving = false;
+    private boolean m_shooting = false;
+    public boolean m_shouldPause = false;
     private Vector2F m_startPos = new Vector2F(0,0);
     private int m_health = 3;
     public long m_currentScore = 0l;
@@ -46,6 +49,8 @@ public class Player extends Collidable implements MovedSubscriber
 	}
 	public void onMoved(PointF movement, float angle)
 	{
+        m_shouldPause = false;
+        m_moving = true;
         if(m_isActive) {
             super.setVelocity(movement.x, movement.y);
         }
@@ -53,6 +58,8 @@ public class Player extends Collidable implements MovedSubscriber
 	}
 	public void onShoot(PointF movement, float angle)
 	{
+        m_shouldPause = false;
+        m_shooting = true;
 		if(movement.length() > 0.1f && m_isActive)
 		{
 			super.setRotation(angle);
@@ -69,12 +76,18 @@ public class Player extends Collidable implements MovedSubscriber
 	
 	public void onReleased()
 	{
-		
+
 	}
 	
-	public void onCentred()
+	public void onCentred(int type)
 	{
-		
+        if(type == 0)
+            m_moving = false;
+        else if(type == 1)
+            m_shooting = false;
+
+        if(!m_moving && !m_shooting && m_isActive)
+            m_shouldPause = true;
 	}
 	public void draw(Paint p, Canvas c)
 	{
