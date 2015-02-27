@@ -7,5 +7,6 @@
     <string name="options">Options</string>
     <string name="startGame">Start Game</string>
     <string name="scoreWord">Score: </string>
-
+    <string name="go_back">Back to Menu</string>
+    <string name="scores">Highscores</string>
 </resources>

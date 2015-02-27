@@ -9,27 +9,33 @@
     android:background="@color/black"
     tools:context="com.example.theendisnigh.MainActivity" >
     <ImageView
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
         android:layout_centerHorizontal="true"
         android:src="@drawable/ic_launcher"/>
     <Button
         android:id="@+id/bt_start"
         android:layout_width="240dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="80dp"
+        android:layout_centerVertical="true"
         android:onClick="startGame"
         android:text="@string/startGame" />
+    <Button
+        android:id="@+id/bt_scores"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/bt_start"
+        android:onClick="goToScores"
+        android:text="@string/scores" />
     
     <Button
         android:id="@+id/bt_options"
         android:layout_width="240dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp"
+        android:layout_below="@id/bt_scores"
         android:onClick="startGame"
         android:text="@string/options" />
 

@@ -26,6 +26,11 @@ public class MainActivity extends ActionBarActivity
 		startActivity(intent);
 	}
 
+    public void goToScores(View view)
+    {
+        Intent intent = new Intent(getApplicationContext(), ScoresActivity.class);
+        startActivity(intent);
+    }
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{

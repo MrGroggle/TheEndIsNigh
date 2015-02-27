@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -120,6 +121,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
     private final int BOTTOM_COLLISION = 4;
     private Bitmap m_background;
     private Quadtree m_quadTree;
+
+
 	SurfaceHolder holder;
 	GameThread thread;
 	Paint paint = new Paint();
@@ -176,6 +179,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 	}
     private void init()
     {
+
         View v = (View)getParent();
         if(v != null)
         {
@@ -230,6 +234,10 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_quadTree = new Quadtree(0, new Rect(0, 0, width, height));
 
     }
+    public Player getPlayer()
+    {
+        return m_player;
+    }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
     {
@@ -255,6 +263,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 
         }
     }
+
 	public void pause()
 	{
 		thread.setPaused(true);
@@ -313,6 +322,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                         if(getContext() instanceof GameActivity)
                         {
                             ((GameActivity) getContext()).onDeath();
+                            thread.setRunning(false);
+
                         }
                         //Do something here to move to highscores
 
@@ -388,9 +399,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         bulletCollision();
         playerCollision();
         if(m_player.m_shouldPause)
-        {
-            pause();
-        }
+            thread.setPaused(true);
 
 	}
     private void UpdateBullets()
