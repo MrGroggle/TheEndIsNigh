@@ -166,7 +166,6 @@ public class JoystickView extends View
 			{
 				if (m_pointerID == BAD_POINTER)
 				{
-
 					//Get pointer index by bitshifting down the index mask and action bits (from android developer site)
 					final int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 					final int pointerId = event.getPointerId(pointerIndex);
@@ -248,7 +247,7 @@ public class JoystickView extends View
         	m_adjustedCoords.y  *= -1;
         }*/
         //Converts into 0-2PI range by reversing Y axis so angle is up, and multiply by 3/2PI to make angle up
-        m_stickAngle = (float)(Math.atan2(m_adjustedCoords.x, m_adjustedCoords.y * -1) + 1.5 * Math.PI);
+        m_stickAngle = (float)(Math.atan2(m_adjustedCoords.x, m_adjustedCoords.y * -1) + 1.5 *  Math.PI);
 
         
     	m_output.x = m_adjustedCoords.x;

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -110,8 +109,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             }
         }
     }
-    private final int PLAY_AREA_WIDTH = 2560;
-    private final int PLAY_AREA_HEIGHT = 2560;
+    private final int PLAY_AREA_WIDTH = 1280;
+    private final int PLAY_AREA_HEIGHT = 1280;
     private final int MAX_PLAYER_BULLETS = 20;
     private final int MAX_ENEMIES = 50;
 
@@ -189,6 +188,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         }
 
         m_player = new Player(PLAY_AREA_WIDTH/2,PLAY_AREA_HEIGHT/2);
+        m_player.setSprite(Bitmap.createScaledBitmap(loadBitmap(R.drawable.player, getContext()), 64, 64, true));
+
         m_player.setMovementSpeed(10f);
         m_playerProjectiles = new Projectile[MAX_PLAYER_BULLETS];
         m_enemyPool = new Enemy[MAX_ENEMIES];
@@ -200,6 +201,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         {
             m_enemyPool[i] = new Enemy(0, 0);
             m_enemyPool[i].setTarget(m_player);
+            m_enemyPool[i].setImage(Bitmap.createScaledBitmap(loadBitmap(R.drawable.zombietwo, getContext()), 64, 64, true));
         }
 
         //@TODO Create a Steering manager/ implement collision checks between enemies so they don't stack up
@@ -397,7 +399,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_spawner.spawnEnemies(m_enemyPool);
         updateQuadTree();
         bulletCollision();
-        playerCollision();
+        if(m_player.m_isActive)
+            playerCollision();
         if(m_player.m_shouldPause)
             thread.setPaused(true);
 

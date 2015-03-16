@@ -104,6 +104,7 @@ public class GameActivity extends Activity implements HighscoresDialogFragment.H
     public void onDialogNegativeClick(DialogFragment dialog)
     {
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }
 

@@ -1,9 +1,11 @@
 package com.example.theendisnigh;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 
 public class Player extends Collidable implements MovedSubscriber
 {
@@ -15,6 +17,8 @@ public class Player extends Collidable implements MovedSubscriber
     private boolean m_moving = false;
     private boolean m_shooting = false;
     public boolean m_shouldPause = false;
+    private Sprite m_playerSprite;
+    private Bitmap m_playerImage;
     private Vector2F m_startPos = new Vector2F(0,0);
     private int m_health = 3;
     public long m_currentScore = 0l;
@@ -23,6 +27,23 @@ public class Player extends Collidable implements MovedSubscriber
 	{
 		super();
 	}
+
+	public Player(float xPos, float yPos)
+	{
+		super(xPos, yPos);
+        m_startPos.x = xPos;
+        m_startPos.y = yPos;
+		m_radius = 32f;
+        MOVEMENT_SPEED = 10f;
+        m_isActive = true;
+
+	}
+    public void setSprite(Bitmap s)
+    {
+        //m_playerSprite = s;
+        m_playerImage = Bitmap.createScaledBitmap(s, (int)m_radius*2, (int)m_radius*2, true);
+
+    }
     public boolean playerHit()
     {
         m_isActive = false;
@@ -38,15 +59,6 @@ public class Player extends Collidable implements MovedSubscriber
         }
 
     }
-	public Player(float xPos, float yPos)
-	{
-		super(xPos, yPos);
-        m_startPos.x = xPos;
-        m_startPos.y = yPos;
-		m_radius = 20f;
-        MOVEMENT_SPEED = 10f;
-        m_isActive = true;
-	}
 	public void onMoved(PointF movement, float angle)
 	{
         m_shouldPause = false;
@@ -54,6 +66,8 @@ public class Player extends Collidable implements MovedSubscriber
         if(m_isActive) {
             super.setVelocity(movement.x, movement.y);
         }
+        if(!m_shooting)
+            super.setRotation(angle);
         //@TODO Need to find a good way to set the walking direction
 	}
 	public void onShoot(PointF movement, float angle)
@@ -98,12 +112,16 @@ public class Player extends Collidable implements MovedSubscriber
                 p.setColor(Color.BLACK);
             c.save();
             c.rotate((float) Math.toDegrees(m_rotation), m_position.x, m_position.y);
-            c.drawRect(m_position.x - 10, m_position.y - 10, m_position.x + 10, m_position.y + 10, p);
-            p.setStrokeWidth(1);
-            p.setColor(Color.DKGRAY);
+
+            //c.drawBitmap(m_playerImage, m_spriteDims, new Rect((int)(m_position.x - m_radius), (int)(m_position.y - m_radius), (int)(m_position.x + m_radius), (int)(m_position.y + m_radius)), null);
+            c.drawBitmap(m_playerImage, m_position.x-m_playerImage.getWidth()/2, m_position.y-m_playerImage.getHeight()/2, null);
+            //m_playerSprite.draw(c);
+            //c.drawRect(m_position.x - 10, m_position.y - 10, m_position.x + 10, m_position.y + 10, p);
+            //p.setStrokeWidth(1);
+            //p.setColor(Color.DKGRAY);
             //Math.PI/180.0 *
             //c.drawCircle(m_position.x + m_radius * (float)Math.cos(m_rotation), m_position.y + m_radius * (float)Math.sin(m_rotation), 5, p);
-            c.drawCircle(m_position.x + m_radius, m_position.y + m_radius, 5, p);
+            //c.drawCircle(m_position.x + m_radius, m_position.y + m_radius, 5, p);
             c.restore();
         }
 	}

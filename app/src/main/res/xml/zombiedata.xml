@@ -3,10 +3,10 @@
     <Zombie>
         <ID>0</ID>
         <Tag>Basic</Tag>
-        <Colour>MAGENTA</Colour>
-        <Radius>20</Radius>
+        <Colour>WHITE</Colour>
+        <Radius>32</Radius>
         <Mass>5</Mass>
-        <Speed>1</Speed>
+        <Speed>2</Speed>
         <Hitpoints>1</Hitpoints>
         <Score>100</Score>
         <StartWeight>100</StartWeight>
@@ -16,10 +16,10 @@
     <Zombie>
         <ID>1</ID>
         <Tag>Fast</Tag>
-        <Colour>CYAN</Colour>
-        <Radius>20</Radius>
+        <Colour>GREEN</Colour>
+        <Radius>24</Radius>
         <Mass>3</Mass>
-        <Speed>3</Speed>
+        <Speed>5</Speed>
         <Hitpoints>1</Hitpoints>
         <Score>200</Score>
         <StartWeight>0</StartWeight>
@@ -29,10 +29,10 @@
     <Zombie>
         <ID>2</ID>
         <Tag>Heavy</Tag>
-        <Colour>BLACK</Colour>
-        <Radius>25</Radius>
+        <Colour>GRAY</Colour>
+        <Radius>42</Radius>
         <Mass>8</Mass>
-        <Speed>0.5</Speed>
+        <Speed>1</Speed>
         <Hitpoints>5</Hitpoints>
         <Score>250</Score>
         <StartWeight>0</StartWeight>
@@ -42,10 +42,10 @@
     <Zombie>
         <ID>3</ID>
         <Tag>Split</Tag>
-        <Colour>WHITE</Colour>
-        <Radius>20</Radius>
+        <Colour>MAGENTA</Colour>
+        <Radius>32</Radius>
         <Mass>5</Mass>
-        <Speed>0.5</Speed>
+        <Speed>1</Speed>
         <Hitpoints>1</Hitpoints>
         <Score>150</Score>
         <StartWeight>0</StartWeight>

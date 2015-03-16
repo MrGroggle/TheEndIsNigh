@@ -13,7 +13,7 @@ import java.util.Random;
 //@TODO: Implement a class that can spawn different types of enemies based on either score or time.
 public class EnemySpawner
 {
-    private final long SPAWN_PERIOD = 1000L; // Adjust to suit timing. We could alter this depending on what weapons the player has
+    private final long SPAWN_PERIOD = 750L; // Adjust to suit timing. We could alter this depending on what weapons the player has
     private long lastTime = System.currentTimeMillis() - SPAWN_PERIOD;
     private float interpTime = 0f;
     private int m_mutations = 0;

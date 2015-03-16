@@ -1,6 +1,9 @@
 package com.example.theendisnigh;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 
 /**
@@ -12,8 +15,10 @@ import android.graphics.Paint;
 public class Enemy extends Collidable
 {
     //private Sprite m_sprite;
+    private Bitmap m_image;
+    private Bitmap m_scaledImage;
     private Collidable m_target;
-    private int m_colour;
+    private ColorFilter m_colour;
     public int m_score = 100;
 
     private float m_maxSpeed = 1f;
@@ -42,6 +47,10 @@ public class Enemy extends Collidable
             m_rotation = (float)(Math.atan2(m_velocity.x, m_velocity.y * -1) + 1.5 * Math.PI);
         }
     }
+    public void setImage(Bitmap s)
+    {
+        m_image = s;
+    }
     public void setFromConfig(EnemyConfig e)
     {
 
@@ -49,7 +58,8 @@ public class Enemy extends Collidable
         m_maxSpeed = e.m_speed;
         m_score = e.m_score;
         m_radius = e.m_radius;
-        m_colour = e.m_paintTEMP;
+        m_scaledImage = Bitmap.createScaledBitmap(m_image, (int)m_radius*2, (int)m_radius*2, true);
+        m_colour = new LightingColorFilter(e.m_paintTEMP, 1);
         m_health = e.m_hp;
 
     }
@@ -89,10 +99,13 @@ public class Enemy extends Collidable
         if(m_isActive)
         {
             p.setStrokeWidth(3);
-            p.setColor(m_colour);
+
+            p.setColorFilter(m_colour);
             c.save();
             c.rotate((float) Math.toDegrees(m_rotation), m_position.x, m_position.y);
-            c.drawRect(m_position.x - m_radius/2, m_position.y - m_radius/2, m_position.x + m_radius/2, m_position.y + m_radius/2, p);
+            c.drawBitmap(m_scaledImage, m_position.x-m_image.getWidth()/2, m_position.y-m_image.getHeight()/2, p);
+
+            //c.drawRect(m_position.x - m_radius/2, m_position.y - m_radius/2, m_position.x + m_radius/2, m_position.y + m_radius/2, p);
             c.restore();
         }
     }

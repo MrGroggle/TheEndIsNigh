@@ -47,7 +47,7 @@ public class HighscoresDialogFragment extends DialogFragment {
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        m_listener.onDialogPositiveClick(HighscoresDialogFragment.this);
+                        m_listener.onDialogNegativeClick(HighscoresDialogFragment.this);
                     }
                 });
         // Create the AlertDialog object and return it
