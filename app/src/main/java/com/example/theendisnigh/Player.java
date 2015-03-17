@@ -9,20 +9,22 @@ import android.graphics.Rect;
 
 public class Player extends Collidable implements MovedSubscriber
 {
-
-    private final long SHOOT_PERIOD = 200L; // Adjust to suit timing. We could alter this depending on what weapons the player has
-    private long lastTime = System.currentTimeMillis() - SHOOT_PERIOD;
     public boolean m_shouldCreateBullet = false;
     public boolean m_killedByEnemy = false;
+    public boolean m_shouldPause = false;
+    public long m_currentScore = 0l;
+// TODO: Add array of mutators (max size 5, 1 source, 3 poison splats and a shield) we can add to from mutator.
+// TODO: Add new poison source mutator that generates mutators.
     private boolean m_moving = false;
     private boolean m_shooting = false;
-    public boolean m_shouldPause = false;
     private Sprite m_playerSprite;
     private Bitmap m_playerImage;
     private Vector2F m_startPos = new Vector2F(0,0);
     private int m_health = 3;
-    public long m_currentScore = 0l;
-    //private final Handler m_handler = new Handler();
+    private final long SHOOT_PERIOD = 200L; // Adjust to suit timing. We could alter this depending on what weapons the player has
+    private long lastTime = System.currentTimeMillis() - SHOOT_PERIOD;
+    private Mutator m_currentMutator = null;
+
 	public Player()
 	{
 		super();
@@ -36,14 +38,13 @@ public class Player extends Collidable implements MovedSubscriber
 		m_radius = 32f;
         MOVEMENT_SPEED = 10f;
         m_isActive = true;
-
 	}
+
     public void setSprite(Bitmap s)
     {
-        //m_playerSprite = s;
         m_playerImage = Bitmap.createScaledBitmap(s, (int)m_radius*2, (int)m_radius*2, true);
-
     }
+
     public boolean playerHit()
     {
         m_isActive = false;
@@ -57,7 +58,10 @@ public class Player extends Collidable implements MovedSubscriber
         {
             return true;
         }
-
+    }
+    public int getHealth()
+    {
+        return m_health;
     }
 	public void onMoved(PointF movement, float angle)
 	{
@@ -68,8 +72,8 @@ public class Player extends Collidable implements MovedSubscriber
         }
         if(!m_shooting)
             super.setRotation(angle);
-        //@TODO Need to find a good way to set the walking direction
 	}
+
 	public void onShoot(PointF movement, float angle)
 	{
         m_shouldPause = false;
@@ -85,13 +89,9 @@ public class Player extends Collidable implements MovedSubscriber
                 m_shouldCreateBullet = true;
             }
 		}
-
 	}
 	
-	public void onReleased()
-	{
-
-	}
+	public void onReleased(){}
 	
 	public void onCentred(int type)
 	{
@@ -103,26 +103,22 @@ public class Player extends Collidable implements MovedSubscriber
         if(!m_moving && !m_shooting && m_isActive)
             m_shouldPause = true;
 	}
+
 	public void draw(Paint p, Canvas c)
 	{
-		if(m_isActive) {
+		if(m_isActive)
+        {
+
             p.setStrokeWidth(3);
-            p.setColor(Color.MAGENTA);
-            if (m_killedByEnemy)
-                p.setColor(Color.BLACK);
             c.save();
             c.rotate((float) Math.toDegrees(m_rotation), m_position.x, m_position.y);
-
-            //c.drawBitmap(m_playerImage, m_spriteDims, new Rect((int)(m_position.x - m_radius), (int)(m_position.y - m_radius), (int)(m_position.x + m_radius), (int)(m_position.y + m_radius)), null);
+            if(m_currentMutator != null)
+            {
+                m_currentMutator.draw(p,c);
+            }
             c.drawBitmap(m_playerImage, m_position.x-m_playerImage.getWidth()/2, m_position.y-m_playerImage.getHeight()/2, null);
-            //m_playerSprite.draw(c);
-            //c.drawRect(m_position.x - 10, m_position.y - 10, m_position.x + 10, m_position.y + 10, p);
-            //p.setStrokeWidth(1);
-            //p.setColor(Color.DKGRAY);
-            //Math.PI/180.0 *
-            //c.drawCircle(m_position.x + m_radius * (float)Math.cos(m_rotation), m_position.y + m_radius * (float)Math.sin(m_rotation), 5, p);
-            //c.drawCircle(m_position.x + m_radius, m_position.y + m_radius, 5, p);
             c.restore();
+
         }
 	}
 	
@@ -135,6 +131,16 @@ public class Player extends Collidable implements MovedSubscriber
 			m_velocity.y = 0f;
 			
 		updatePosition(m_velocity.x * MOVEMENT_SPEED, m_velocity.y * MOVEMENT_SPEED);
+        if(m_currentMutator != null)
+        {
+            m_currentMutator.updatePos(this);
+            m_currentMutator.setPosition(m_position.x, m_position.y);
+            if(!m_currentMutator.m_isActive)
+            {
+                m_currentMutator = null;
+            }
+        }
+
 	}
 
     public PointF getRadialPosition()
@@ -145,8 +151,12 @@ public class Player extends Collidable implements MovedSubscriber
     {
         return m_rotation;
     }
-
-	
-	
-	
+    public void addMutator(Mutator m)
+    {
+        m_currentMutator = m;
+    }
+    public Mutator getMutator()
+    {
+        return m_currentMutator;
+    }
 }

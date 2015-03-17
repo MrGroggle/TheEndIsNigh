@@ -17,7 +17,7 @@
         <ID>1</ID>
         <Tag>Fast</Tag>
         <Colour>GREEN</Colour>
-        <Radius>24</Radius>
+        <Radius>27.5</Radius>
         <Mass>3</Mass>
         <Speed>5</Speed>
         <Hitpoints>1</Hitpoints>

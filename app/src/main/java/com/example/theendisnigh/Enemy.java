@@ -22,7 +22,7 @@ public class Enemy extends Collidable
     public int m_score = 100;
 
     private float m_maxSpeed = 1f;
-    private final float MAX_FORCE = 0.1f;
+    private float m_maxForce = 0.1f;
     private float m_mass = 5f;
     private int m_health = 1;
 
@@ -56,6 +56,7 @@ public class Enemy extends Collidable
 
         m_mass = e.m_mass;
         m_maxSpeed = e.m_speed;
+        m_maxForce = m_maxSpeed/10;
         m_score = e.m_score;
         m_radius = e.m_radius;
         m_scaledImage = Bitmap.createScaledBitmap(m_image, (int)m_radius*2, (int)m_radius*2, true);
@@ -71,7 +72,7 @@ public class Enemy extends Collidable
         //Seek behaviour
 
         Vector2F desiredVelocity = m_target.m_isActive ? seek() : flee();
-        desiredVelocity.trunc(MAX_FORCE);
+        desiredVelocity.trunc(m_maxForce);
         desiredVelocity.div(m_mass);
         desiredVelocity.add(m_velocity);
         desiredVelocity.trunc(m_maxSpeed);

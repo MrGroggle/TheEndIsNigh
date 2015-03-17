@@ -9,4 +9,5 @@
     <string name="scoreWord">Score: </string>
     <string name="go_back">Back to Menu</string>
     <string name="scores">Highscores</string>
+    <string name="livesWord">Lives: </string>
 </resources>
