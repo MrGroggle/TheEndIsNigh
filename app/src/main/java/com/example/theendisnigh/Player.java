@@ -56,7 +56,7 @@ public class Player extends Collidable implements MovedSubscriber
         m_health--;
         m_velocity.x = 0;
         m_velocity.y = 0;
-        return m_health > 0;
+        return m_health <= 0;
     }
     public int getHealth()
     {

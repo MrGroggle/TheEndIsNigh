@@ -69,7 +69,8 @@ public class GameActivity extends Activity implements HighscoresDialogFragment.H
             {
                 List<Score> scoreStrings = new ArrayList<Score>();
                 String[] exScores = scores.split("\\|");
-                for(int i = 0; i < 10; i++)
+
+                for(int i = 0; i < Math.min(10, exScores.length); i++)
                 {
                     String[] parts = exScores[i].split(" - ");
                     scoreStrings.add(new Score(parts[0], Integer.parseInt(parts[1])));

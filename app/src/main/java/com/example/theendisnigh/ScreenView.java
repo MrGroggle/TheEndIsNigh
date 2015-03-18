@@ -178,6 +178,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 
         XMLPullParserHandler parser = new XMLPullParserHandler();
         m_spawner.setEnemyConfigs(parser.parse(context.getResources().getXml(R.xml.zombiedata)));
+
+        m_quadTree = new Quadtree(0, new Rect(0, 0, m_width, m_height));
 	}
 
     private void init()
@@ -221,7 +223,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_moveStick.setStickType(0);
         m_fireStick.setMovedSubscriber(m_player);
         m_fireStick.setStickType(1);
-        m_quadTree = new Quadtree(0, new Rect(0, 0, m_width, m_height));
     }
     @Override
     protected void onSizeChanged(int xNew, int yNew, int xOld, int yOld){
