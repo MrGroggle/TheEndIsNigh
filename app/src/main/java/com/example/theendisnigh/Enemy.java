@@ -1,6 +1,9 @@
 package com.example.theendisnigh;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 
 /**
@@ -12,14 +15,24 @@ import android.graphics.Paint;
 public class Enemy extends Collidable
 {
     //private Sprite m_sprite;
+    private Bitmap m_image;
+    private Bitmap m_scaledImage;
     private Collidable m_target;
-    private int m_colour;
+    private ColorFilter m_colour;
     public int m_score = 100;
 
     private float m_maxSpeed = 1f;
-    private final float MAX_FORCE = 0.1f;
+    private float m_maxForce = 0.1f;
     private float m_mass = 5f;
     private int m_health = 1;
+
+    private boolean m_slowed = false;
+    private boolean m_onFire = false;
+    private boolean m_frozen = false;
+
+    private int m_fireDamage = 0;
+
+    private long lastTime = System.currentTimeMillis() - 200L;
 
     public Enemy()
     {
@@ -31,44 +44,72 @@ public class Enemy extends Collidable
         m_radius = 20f;
         m_isActive = false;
     }
-    //@TODO Should probably timestep this
+
     public void update()
     {
-        if(m_isActive)
+        if(m_isActive && !m_frozen)
         {
             super.update();
             moveToTarget();
 
             m_rotation = (float)(Math.atan2(m_velocity.x, m_velocity.y * -1) + 1.5 * Math.PI);
         }
+        if(m_isActive && m_onFire)
+        {
+            if(checkDeadAfterHit(m_fireDamage, false)) {
+                if (m_target instanceof Player) {
+                    ((Player) m_target).m_currentScore += m_score;
+                    m_isActive = false;
+                }
+            }
+        }
+    }
+    public void setImage(Bitmap s)
+    {
+        m_image = s;
     }
     public void setFromConfig(EnemyConfig e)
     {
 
         m_mass = e.m_mass;
         m_maxSpeed = e.m_speed;
+        m_maxForce = m_maxSpeed/10;
         m_score = e.m_score;
         m_radius = e.m_radius;
-        m_colour = e.m_paintTEMP;
+        m_scaledImage = Bitmap.createScaledBitmap(m_image, (int)m_radius*2, (int)m_radius*2, true);
+        m_colour = new LightingColorFilter(e.m_paintTEMP, 1);
         m_health = e.m_hp;
+        m_slowed = false;
+        m_onFire = false;
+        m_frozen = false;
 
     }
 
-    //@TODO Update this to work with angles, crude implementation here
+    private Vector2F getBehaviour()
+    {
+        if(m_target.m_isActive && !m_onFire)
+        {
+            return seek();
+        }else
+        {
+            return flee();
+        }
+    }
+
     public void moveToTarget()
     {
         //Use Atan2 here to calculate angle to the player and set rotation
         //Seek behaviour
 
-        Vector2F desiredVelocity = m_target.m_isActive ? seek() : flee();
-        desiredVelocity.trunc(MAX_FORCE);
+        Vector2F desiredVelocity = getBehaviour();
+        desiredVelocity.trunc(m_maxForce);
         desiredVelocity.div(m_mass);
         desiredVelocity.add(m_velocity);
         desiredVelocity.trunc(m_maxSpeed);
         m_velocity.x = desiredVelocity.x;
         m_velocity.y = desiredVelocity.y;
 
-        updatePosition(m_velocity.x * MOVEMENT_SPEED, m_velocity.y * MOVEMENT_SPEED);
+        updatePosition(m_velocity.x * MOVEMENT_SPEED * (m_slowed ? 0.5f : 1.f), m_velocity.y * MOVEMENT_SPEED * (m_slowed ? 0.3f : 1.f));
     }
     private Vector2F seek()
     {
@@ -89,26 +130,49 @@ public class Enemy extends Collidable
         if(m_isActive)
         {
             p.setStrokeWidth(3);
-            p.setColor(m_colour);
+
+            p.setColorFilter(m_colour);
             c.save();
             c.rotate((float) Math.toDegrees(m_rotation), m_position.x, m_position.y);
-            c.drawRect(m_position.x - m_radius/2, m_position.y - m_radius/2, m_position.x + m_radius/2, m_position.y + m_radius/2, p);
+            c.drawBitmap(m_scaledImage, m_position.x-m_image.getWidth()/2, m_position.y-m_image.getHeight()/2, p);
             c.restore();
         }
     }
-    public boolean checkDeadAfterHit()
+    public boolean checkDeadAfterHit(int damage, boolean shouldSlow)
     {
-        m_health--;
-        m_velocity.negate();
-        if(m_health == 0)
+        long currTime = System.currentTimeMillis();
+
+        if((currTime - lastTime) >= 200L)
         {
-            m_isActive = false;
+            lastTime = currTime;
+            m_health-=damage;
+            slowEnemy(shouldSlow);
+            if(m_health <= 0)
+            {
+                m_isActive = false;
+            }
         }
         return !m_isActive;
+
     }
     public void setTarget(Collidable c)
     {
         m_target = c;
+    }
+    public void slowEnemy(boolean slow)
+    {
+        m_slowed = slow;
+    }
+    public void setFireDamage(int damage)
+    {
+        m_onFire = true;
+        m_velocity.x = 0f;
+        m_velocity.y = 0f;
+        m_fireDamage = damage;
+    }
+    public void setFrozen()
+    {
+        m_frozen = true;
     }
 
 }

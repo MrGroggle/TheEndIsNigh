@@ -2,6 +2,7 @@ package com.example.theendisnigh;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -19,7 +20,6 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.TextView;
 
-//@SuppressLint("WrongCall")//Needed to suppress the lint error
 public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 {
     class GameThread extends Thread {
@@ -33,6 +33,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             this.m_surfaceHolder = h;
             this.context = c;
             this.handler = hand;
+            running = true;
+            paused = false;
         }
 
         public boolean isRunning() {
@@ -58,7 +60,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             boolean doPause = false;
             boolean doResume = true;
             //Remove conflict between the UI thread and the game thread.
-            init();
+            if(!isPaused())
+                init();
             while (running)
             {
                 Canvas c = null;
@@ -90,7 +93,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                                 p.setColor(Color.BLACK);
                                 p.setAlpha(125);
                                 c.drawRect(0, 0, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT, p);
-                                p = null;
                             }
                         }
                         paused = m_player.m_shouldPause;
@@ -109,10 +111,11 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             }
         }
     }
-    private final int PLAY_AREA_WIDTH = 2560;
-    private final int PLAY_AREA_HEIGHT = 2560;
+    private final int PLAY_AREA_WIDTH = 1280;
+    private final int PLAY_AREA_HEIGHT = 1280;
     private final int MAX_PLAYER_BULLETS = 20;
     private final int MAX_ENEMIES = 50;
+    private final int MAX_PICKUPS = 10;
 
     private final int LEFT_COLLISION = 1;
     private final int TOP_COLLISION = 2;
@@ -120,6 +123,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
     private final int BOTTOM_COLLISION = 4;
     private Bitmap m_background;
     private Quadtree m_quadTree;
+
 	SurfaceHolder holder;
 	GameThread thread;
 	Paint paint = new Paint();
@@ -138,14 +142,15 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 	private int m_maxYTranslate;
 
     private TextView m_scoreUI;
+    private TextView m_livesUI;
 	private JoystickView m_moveStick;
 	private JoystickView m_fireStick;
 
 	private Projectile[] m_playerProjectiles;
-
-    //Temporary testing variable
     private Enemy[] m_enemyPool;
     private EnemySpawner m_spawner;
+
+    private PlayerPickup[] m_playerPickups;
 
 	private Player m_player;
 	//Define the frame rate 
@@ -153,7 +158,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 
 	public ScreenView(Context context, AttributeSet attrs) 
 	{
-		
 		super(context, attrs);
 		holder = getHolder();
 		m_fieldWidth = PLAY_AREA_WIDTH;
@@ -167,13 +171,17 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                 //@Todo handle messages
             }
         });
-        Bitmap background = loadBitmap(R.drawable.playareatest, context);
+        thread.setRunning(true);
+        Bitmap background = loadBitmap(R.drawable.labbackground, context);
         m_background = Bitmap.createScaledBitmap(background, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT, true);
-        m_spawner = new EnemySpawner(10, m_fieldWidth, m_fieldHeight);
+        m_spawner = new EnemySpawner(m_fieldWidth, m_fieldHeight);
 
         XMLPullParserHandler parser = new XMLPullParserHandler();
         m_spawner.setEnemyConfigs(parser.parse(context.getResources().getXml(R.xml.zombiedata)));
+
+        m_quadTree = new Quadtree(0, new Rect(0, 0, m_width, m_height));
 	}
+
     private void init()
     {
         View v = (View)getParent();
@@ -182,23 +190,38 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             m_moveStick = (JoystickView) v.findViewById(R.id.joystickViewMove);
             m_fireStick = (JoystickView) v.findViewById(R.id.joystickViewFire);
             m_scoreUI = (TextView) v.findViewById(R.id.scoreUpdate);
+            m_livesUI = (TextView) v.findViewById(R.id.livesUpdate);
+
         }
 
         m_player = new Player(PLAY_AREA_WIDTH/2,PLAY_AREA_HEIGHT/2);
+        m_player.setSprite(loadBitmap(R.drawable.player, getContext()));
         m_player.setMovementSpeed(10f);
+        m_player.setMutatorSprites(Mutator.MutatorType.FIRE, loadBitmap(R.drawable.firecircle,getContext()));
+        m_player.setMutatorSprites(Mutator.MutatorType.FREEZE, loadBitmap(R.drawable.icecircle,getContext()));
+        m_player.setMutatorSprites(Mutator.MutatorType.POISON, loadBitmap(R.drawable.poisoncircle,getContext()));
         m_playerProjectiles = new Projectile[MAX_PLAYER_BULLETS];
         m_enemyPool = new Enemy[MAX_ENEMIES];
+        m_playerPickups = new PlayerPickup[MAX_PICKUPS];
+
         for(int i = 0; i < MAX_PLAYER_BULLETS; i++)
         {
             m_playerProjectiles[i] = new Projectile();
+            m_playerProjectiles[i].setSprite(loadBitmap(R.drawable.bullet, getContext()));
         }
+
         for(int i = 0; i < MAX_ENEMIES; i++)
         {
             m_enemyPool[i] = new Enemy(0, 0);
             m_enemyPool[i].setTarget(m_player);
+            m_enemyPool[i].setImage(loadBitmap(R.drawable.zombietwo, getContext()));
         }
 
-        //@TODO Create a Steering manager/ implement collision checks between enemies so they don't stack up
+        for(int i = 0; i < MAX_PICKUPS; i++) {
+            int type = i % Mutator.MutatorType.COUNT.ordinal();
+            m_playerPickups[i] = new PlayerPickup(0, 0, Mutator.MutatorType.fromInt(type));
+        }
+
         m_moveStick.setMovedSubscriber(m_player);
         m_moveStick.setStickType(0);
         m_fireStick.setMovedSubscriber(m_player);
@@ -211,7 +234,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_width = xNew;
         m_height = yNew;
 
-        m_quadTree = new Quadtree(0, new Rect(0, 0, xNew, yNew));
+        m_quadTree.setBounds(new Rect(0, 0, xNew, yNew));
     }
 
     @Override
@@ -227,8 +250,12 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_maxYTranslate = m_fieldHeight - height;
 
         setMeasuredDimension(width, height);
-        m_quadTree = new Quadtree(0, new Rect(0, 0, width, height));
+        m_quadTree.setBounds(new Rect(0, 0, width, height));
 
+    }
+    public Player getPlayer()
+    {
+        return m_player;
     }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
@@ -255,6 +282,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 
         }
     }
+
 	public void pause()
 	{
 		thread.setPaused(true);
@@ -266,13 +294,24 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 	}
     public void start()
     {
-        thread.setRunning(true);
-        thread.start();
+        if(!thread.isRunning())
+        {
+            thread = new GameThread(getHolder(), getContext(), new Handler());
+            thread.setRunning(true);
+            thread.setPaused(true);
+            thread.start();
+        }
+        else {
+            thread.start();
+        }
     }
     public void updateQuadTree()
     {
         m_quadTree.clear();
         m_quadTree.insert(m_player);
+        if(m_player.getMutator().m_isActive) {
+            m_quadTree.insert(m_player.getMutator());
+        }
         for(int i = 0; i<MAX_PLAYER_BULLETS;i++)
         {
             if(m_playerProjectiles[i].m_isActive)
@@ -287,6 +326,21 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                 m_quadTree.insert(m_enemyPool[i]);
             }
         }
+        for(int i=0; i<MAX_PICKUPS; i++)
+        {
+            if(m_playerPickups[i].m_isActive)
+            {
+                m_quadTree.insert(m_playerPickups[i]);
+            }
+        }
+        for(int i = 0; i < m_player.m_poisonCollide.length; i++)
+        {
+            if(m_player.m_poisonCollide[i].m_isActive)
+            {
+                m_quadTree.insert(m_player.m_poisonCollide[i]);
+            }
+        }
+
     }
     public void playerCollision()
     {
@@ -299,28 +353,37 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             {
                 if(m_player.checkCollision(returnCollidables.get(i)))
                 {
-                    //final Handler handler = new Handler();
                     returnCollidables.get(i).m_isActive = false;
-                    if(!m_player.playerHit()) {
-                        postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                m_player.m_isActive = true;
-                            }
-                        }, 3000); //Wait 5 seconds
-                    }else
-                    {
-                        if(getContext() instanceof GameActivity)
-                        {
-                            ((GameActivity) getContext()).onDeath();
-                        }
-                        //Do something here to move to highscores
+                    if(!m_player.hasActiveShield()) {
+                        if (!m_player.playerHit()) {
+                            postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    m_player.m_isActive = true;
+                                    m_player.setPlayerMutator(Mutator.MutatorType.SHIELD);
+                                }
+                            }, 3000); //Wait 5 seconds
+                        } else {
+                            if (getContext() instanceof GameActivity) {
+                                ((GameActivity) getContext()).onDeath();
+                                thread.setRunning(false);
 
+                            }
+                            //Do something here to move to highscores
+
+                        }
                     }
+                }
+            }else if(returnCollidables.get(i) instanceof PlayerPickup)
+            {
+                if(m_player.checkCollision(returnCollidables.get(i)))
+                {
+                    ((PlayerPickup)returnCollidables.get(i)).onPickup(m_player);
                 }
             }
         }
     }
+
     private void bulletCollision()
     {
         List<Collidable> returnCollidables = new ArrayList<Collidable>();
@@ -336,9 +399,14 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                     {
                         if(m_playerProjectiles[i].checkCollision(returnCollidables.get(x)))
                         {
-                            if(((Enemy)returnCollidables.get(x)).checkDeadAfterHit())
+                            if(((Enemy)returnCollidables.get(x)).checkDeadAfterHit(10, true))
                             {
                                 m_player.m_currentScore += ((Enemy)returnCollidables.get(x)).m_score;
+                                if(m_player.m_currentScore % 10000L == 0)
+                                {
+                                    m_player.addHealth();
+                                }
+                                generatePickup(((Enemy)returnCollidables.get(x)));
                             }
                             m_playerProjectiles[i].m_isActive = false;
                         }
@@ -346,11 +414,85 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                 }
             }
         }
-
     }
+    private void poisonCollision()
+    {
+        List<Collidable> returnCollidables = new ArrayList<Collidable>();
+        for(int i = 0; i < m_player.m_poisonCollide.length; i++)
+        {
+            if(m_player.m_poisonCollide[i].m_isActive)
+            {
+                m_quadTree.retrieve(returnCollidables, m_player.m_poisonCollide[i]);
+
+                for(int x = 0; x < returnCollidables.size(); x++)
+                {
+                    if(returnCollidables.get(x) instanceof Enemy && returnCollidables.get(x).m_isActive)
+                    {
+                        if(m_player.m_poisonCollide[i].checkCollision(returnCollidables.get(x)))
+                        {
+                            if(((Enemy)returnCollidables.get(x)).checkDeadAfterHit(m_player.m_poisonCollide[i].getDamage(), true))
+                            {
+                                m_player.m_currentScore += ((Enemy)returnCollidables.get(x)).m_score;
+                                generatePickup(((Enemy)returnCollidables.get(x)));
+                            }
+                        }else
+                        {
+                            ((Enemy)returnCollidables.get(x)).slowEnemy(false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void mutatorCollision()
+    {
+        if(m_player.getMutator().m_isActive) {
+            List<Collidable> returnCollidables = new ArrayList<Collidable>();
+            m_quadTree.retrieve(returnCollidables, m_player.getMutator());
+
+            for (int i = 0; i < returnCollidables.size(); i++) {
+                if (returnCollidables.get(i) instanceof Enemy) {
+                    if (m_player.getMutator().checkCollision(returnCollidables.get(i))) {
+                        switch (m_player.getMutator().getType()) {
+                            case FIRE:
+                                ((Enemy) returnCollidables.get(i)).setFireDamage(m_player.getMutator().getDamage());
+                                break;
+                            case FREEZE:
+                                ((Enemy) returnCollidables.get(i)).setFrozen();
+                                break;
+                            case SHIELD:
+                                if (((Enemy) returnCollidables.get(i)).checkDeadAfterHit(m_player.getMutator().getDamage(), true)) {
+                                    m_player.m_currentScore += ((Enemy) returnCollidables.get(i)).m_score;
+                                    generatePickup(((Enemy) returnCollidables.get(i)));
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void generatePickup(Enemy e)
+    {
+        int chance = new Random().nextInt(10);
+        if(chance < 3)
+        {
+            for(PlayerPickup p : m_playerPickups)
+            {
+                if(!p.m_isActive)
+                {
+                    p.m_isActive = true;
+                    p.setPosition(e.m_position.x, e.m_position.y);
+                    return;
+                }
+            }
+        }
+    }
+
 	public void Update()
 	{
-
         int check = checkEdge(m_player);
         if(check > 0)
         {
@@ -386,16 +528,16 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_spawner.spawnEnemies(m_enemyPool);
         updateQuadTree();
         bulletCollision();
-        playerCollision();
+        poisonCollision();
+        mutatorCollision();
+        if(m_player.m_isActive) //We're invincible with a shield on)
+            playerCollision();
         if(m_player.m_shouldPause)
-        {
-            pause();
-        }
+            thread.setPaused(true);
 
 	}
     private void UpdateBullets()
     {
-
         for(int i = 0; i < MAX_PLAYER_BULLETS; i++)
         {
             if(!m_playerProjectiles[i].m_isActive)
@@ -441,7 +583,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             WORLD SPACE DRAWING
         */
         c.drawBitmap(m_background, 0, 0, null);
-        m_spawner.draw(paint,c);
         m_player.draw(paint, c);
         for(int i = 0; i<MAX_ENEMIES; i++)
         {
@@ -451,12 +592,15 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         {
             m_playerProjectiles[i].draw(paint, c);
         }
+        for(PlayerPickup p : m_playerPickups)
+        {
+            p.draw(paint, c);
+        }
         post(new Runnable() {
             @Override
             public void run() {
-
                 m_scoreUI.setText(Long.toString(m_player.m_currentScore));
-
+                m_livesUI.setText(Integer.toString(m_player.getHealth()));
             }
         });
         c.restore();
@@ -477,7 +621,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         return isOver;
     }
 
-    public Bitmap loadBitmap(int resDrId, Context context)
+    public static Bitmap loadBitmap(int resDrId, Context context)
     {
         return loadBitmap(resDrId, 1, context);
     }

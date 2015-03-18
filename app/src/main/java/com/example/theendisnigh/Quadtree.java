@@ -10,8 +10,6 @@ import java.util.List;
  */
 public class Quadtree
 {
-    private final int MAX_OBJECTS = 10;
-    private final int MAX_LEVELS = 5;
 
     private int m_level;
     private List<Collidable> m_objects;
@@ -25,6 +23,12 @@ public class Quadtree
         m_bounds = bounds;
         m_nodes = new Quadtree[4];
     }
+
+    public void setBounds(Rect bounds)
+    {
+        m_bounds = bounds;
+    }
+
 
     public void clear()
     {
@@ -93,6 +97,8 @@ public class Quadtree
         }
 
         m_objects.add(c);
+        int MAX_OBJECTS = 20;
+        int MAX_LEVELS = 4;
         if(m_objects.size() > MAX_OBJECTS && m_level < MAX_LEVELS)
         {
             if(m_nodes[0] == null)
@@ -125,15 +131,4 @@ public class Quadtree
         returnObjects.addAll(m_objects);
         return returnObjects;
     }
-
-    /*public void draw(Paint p, Canvas c)
-    {
-        p.setARGB(255, 127,255,0);
-        p.setStrokeWidth(1);
-        p.setStyle(Paint.Style.STROKE);
-        c.save();
-        c.drawRect(m_bounds, p);
-        c.restore();
-        p.setStyle(Paint.Style.FILL);
-    }*/
 }
