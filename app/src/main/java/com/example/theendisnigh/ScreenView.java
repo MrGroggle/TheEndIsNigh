@@ -93,7 +93,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                                 p.setColor(Color.BLACK);
                                 p.setAlpha(125);
                                 c.drawRect(0, 0, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT, p);
-                                p = null;
                             }
                         }
                         paused = m_player.m_shouldPause;
@@ -117,7 +116,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
     private final int MAX_PLAYER_BULLETS = 20;
     private final int MAX_ENEMIES = 50;
     private final int MAX_PICKUPS = 10;
-    private final int MAX_MUTATORS = 5;
 
     private final int LEFT_COLLISION = 1;
     private final int TOP_COLLISION = 2;
@@ -176,7 +174,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         thread.setRunning(true);
         Bitmap background = loadBitmap(R.drawable.labbackground, context);
         m_background = Bitmap.createScaledBitmap(background, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT, true);
-        m_spawner = new EnemySpawner(10, m_fieldWidth, m_fieldHeight);
+        m_spawner = new EnemySpawner(m_fieldWidth, m_fieldHeight);
 
         XMLPullParserHandler parser = new XMLPullParserHandler();
         m_spawner.setEnemyConfigs(parser.parse(context.getResources().getXml(R.xml.zombiedata)));
@@ -223,6 +221,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_moveStick.setStickType(0);
         m_fireStick.setMovedSubscriber(m_player);
         m_fireStick.setStickType(1);
+        m_quadTree = new Quadtree(0, new Rect(0, 0, m_width, m_height));
     }
     @Override
     protected void onSizeChanged(int xNew, int yNew, int xOld, int yOld){
@@ -231,7 +230,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_width = xNew;
         m_height = yNew;
 
-        m_quadTree = new Quadtree(0, new Rect(0, 0, xNew, yNew));
+        m_quadTree.setBounds(new Rect(0, 0, xNew, yNew));
     }
 
     @Override
@@ -247,7 +246,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_maxYTranslate = m_fieldHeight - height;
 
         setMeasuredDimension(width, height);
-        m_quadTree = new Quadtree(0, new Rect(0, 0, width, height));
+        m_quadTree.setBounds(new Rect(0, 0, width, height));
 
     }
     public Player getPlayer()
@@ -351,24 +350,24 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                 if(m_player.checkCollision(returnCollidables.get(i)))
                 {
                     returnCollidables.get(i).m_isActive = false;
-                    if(!m_player.playerHit()) {
-                        postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                m_player.m_isActive = true;
-                                m_player.setPlayerMutator(Mutator.MutatorType.SHIELD);
+                    if(!m_player.hasActiveShield()) {
+                        if (!m_player.playerHit()) {
+                            postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    m_player.m_isActive = true;
+                                    m_player.setPlayerMutator(Mutator.MutatorType.SHIELD);
+                                }
+                            }, 3000); //Wait 5 seconds
+                        } else {
+                            if (getContext() instanceof GameActivity) {
+                                ((GameActivity) getContext()).onDeath();
+                                thread.setRunning(false);
+
                             }
-                        }, 3000); //Wait 5 seconds
-                    }else
-                    {
-                        if(getContext() instanceof GameActivity)
-                        {
-                            ((GameActivity) getContext()).onDeath();
-                            thread.setRunning(false);
+                            //Do something here to move to highscores
 
                         }
-                        //Do something here to move to highscores
-
                     }
                 }
             }else if(returnCollidables.get(i) instanceof PlayerPickup)
@@ -440,30 +439,27 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 
     private void mutatorCollision()
     {
-        List<Collidable> returnCollidables = new ArrayList<Collidable>();
-        m_quadTree.retrieve(returnCollidables, m_player.getMutator());
+        if(m_player.getMutator().m_isActive) {
+            List<Collidable> returnCollidables = new ArrayList<Collidable>();
+            m_quadTree.retrieve(returnCollidables, m_player.getMutator());
 
-        for(int i = 0; i < returnCollidables.size(); i++)
-        {
-            if(returnCollidables.get(i) instanceof Enemy)
-            {
-                if(m_player.getMutator().checkCollision(returnCollidables.get(i)))
-                {
-                    switch (m_player.getMutator().getType())
-                    {
-                        case FIRE:
-                            ((Enemy)returnCollidables.get(i)).setFireDamage(m_player.getMutator().getDamage());
-                            break;
-                        case FREEZE:
-                            ((Enemy)returnCollidables.get(i)).setFrozen();
-                            break;
-                        case SHIELD:
-                            if(((Enemy)returnCollidables.get(i)).checkDeadAfterHit(m_player.getMutator().getDamage(), true))
-                            {
-                                m_player.m_currentScore += ((Enemy)returnCollidables.get(i)).m_score;
-                                generatePickup(((Enemy)returnCollidables.get(i)));
-                            }
-                            break;
+            for (int i = 0; i < returnCollidables.size(); i++) {
+                if (returnCollidables.get(i) instanceof Enemy) {
+                    if (m_player.getMutator().checkCollision(returnCollidables.get(i))) {
+                        switch (m_player.getMutator().getType()) {
+                            case FIRE:
+                                ((Enemy) returnCollidables.get(i)).setFireDamage(m_player.getMutator().getDamage());
+                                break;
+                            case FREEZE:
+                                ((Enemy) returnCollidables.get(i)).setFrozen();
+                                break;
+                            case SHIELD:
+                                if (((Enemy) returnCollidables.get(i)).checkDeadAfterHit(m_player.getMutator().getDamage(), true)) {
+                                    m_player.m_currentScore += ((Enemy) returnCollidables.get(i)).m_score;
+                                    generatePickup(((Enemy) returnCollidables.get(i)));
+                                }
+                                break;
+                        }
                     }
                 }
             }
@@ -477,7 +473,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         {
             for(PlayerPickup p : m_playerPickups)
             {
-                if(p.m_isActive == false)
+                if(!p.m_isActive)
                 {
                     p.m_isActive = true;
                     p.setPosition(e.m_position.x, e.m_position.y);
@@ -526,7 +522,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         bulletCollision();
         poisonCollision();
         mutatorCollision();
-        if(m_player.m_isActive)
+        if(m_player.m_isActive) //We're invincible with a shield on)
             playerCollision();
         if(m_player.m_shouldPause)
             thread.setPaused(true);
@@ -534,7 +530,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 	}
     private void UpdateBullets()
     {
-
         for(int i = 0; i < MAX_PLAYER_BULLETS; i++)
         {
             if(!m_playerProjectiles[i].m_isActive)

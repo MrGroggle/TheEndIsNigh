@@ -1,7 +1,6 @@
 package com.example.theendisnigh;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -23,7 +22,8 @@ public class ScoresActivity extends Activity
         String[] savedScores = scorePrefs.getString("highscores", "").split("\\|");
         StringBuilder scoreBuild = new StringBuilder("");
         for(String score : savedScores){
-            scoreBuild.append(score+"\n");
+            score += "\n";
+            scoreBuild.append(score);
         }
         scoreView.setText(scoreBuild.toString());
     }

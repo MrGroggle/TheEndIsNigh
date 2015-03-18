@@ -15,6 +15,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_centerHorizontal="true"
+            android:contentDescription="@string/launcherDesc"
             android:src="@drawable/ic_launcher"/>
         <Button
             android:id="@+id/bt_start"
@@ -42,7 +43,7 @@
             android:layout_below="@id/name"
             android:layout_centerHorizontal="true"
             android:padding="10dp"
-            android:text="HIGH SCORES"
+            android:text="@string/scoresCaps"
             android:textColor="#ffffffff"
             android:textSize="24sp"
             android:textStyle="bold" />

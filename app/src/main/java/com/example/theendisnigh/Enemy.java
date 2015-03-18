@@ -166,7 +166,8 @@ public class Enemy extends Collidable
     public void setFireDamage(int damage)
     {
         m_onFire = true;
-        m_velocity.negate();
+        m_velocity.x = 0f;
+        m_velocity.y = 0f;
         m_fireDamage = damage;
     }
     public void setFrozen()

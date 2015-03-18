@@ -69,8 +69,8 @@ public class Mutator extends Collidable {
                 m_colour = Color.argb(125, 0, 255, 0);
                 break;
             case FREEZE:
-                m_duration = 500L;
-                m_damage = 5;
+                m_duration = 750L;
+                m_damage = 0;
                 m_radius = 250;
                 m_canMove = false;
                 m_colour = Color.argb(125, 0, 255, 255);

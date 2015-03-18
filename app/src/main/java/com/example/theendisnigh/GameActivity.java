@@ -17,7 +17,6 @@ import java.util.List;
 public class GameActivity extends Activity implements HighscoresDialogFragment.HighscoreDialogListener {
 	
 	private ScreenView sv;
-    private HighscoresDialogFragment hf;
 
     private SharedPreferences gamePrefs;
     public static final String GAME_PREFS = "EndNighFile";
@@ -53,7 +52,7 @@ public class GameActivity extends Activity implements HighscoresDialogFragment.H
 
     protected void onDeath()
     {
-        hf = new HighscoresDialogFragment();
+        HighscoresDialogFragment hf = new HighscoresDialogFragment();
         hf.show(getFragmentManager(), "HighscoresFragment");
     }
 
@@ -86,12 +85,12 @@ public class GameActivity extends Activity implements HighscoresDialogFragment.H
                 }
                 //write to prefs
                 edit.putString("highscores", scoreBuild.toString());
-                edit.commit();
+                edit.apply();
             }
             else
             {
                 edit.putString("highscores", "" + name + " - " + currentScore);
-                edit.commit();
+                edit.apply();
             }
         }
     }

@@ -12,6 +12,7 @@
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:layout_centerHorizontal="true"
+        android:contentDescription="@string/launcherDesc"
         android:src="@drawable/ic_launcher"/>
     <Button
         android:id="@+id/bt_start"

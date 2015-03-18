@@ -2,26 +2,20 @@ package com.example.theendisnigh;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.Rect;
 
 public class Player extends Collidable implements MovedSubscriber
 {
     public boolean m_shouldCreateBullet = false;
-    public boolean m_killedByEnemy = false;
     public boolean m_shouldPause = false;
     public long m_currentScore = 0l;
-// TODO: Add array of mutators (max size 5, 1 source, 3 poison splats and a shield) we can add to from mutator.
-// TODO: Add new poison source mutator that generates mutators.
     public Mutator[] m_poisonCollide;
     private final int NUM_COLLIDERS = 3;
     private boolean m_moving = false;
     private boolean m_shooting = false;
     private Sprite m_playerSprite;
     private Bitmap m_playerImage;
-    private Vector2F m_startPos = new Vector2F(0,0);
     private int m_health = 3;
     private final long SHOOT_PERIOD = 200L; // Adjust to suit timing. We could alter this depending on what weapons the player has
     private long lastTime = System.currentTimeMillis() - SHOOT_PERIOD;
@@ -35,6 +29,7 @@ public class Player extends Collidable implements MovedSubscriber
 	public Player(float xPos, float yPos)
 	{
 		super(xPos, yPos);
+        Vector2F m_startPos = new Vector2F(0, 0);
         m_startPos.x = xPos;
         m_startPos.y = yPos;
 		m_radius = 32f;
@@ -57,18 +52,11 @@ public class Player extends Collidable implements MovedSubscriber
 
     public boolean playerHit()
     {
-        if(m_currentMutator.getType() != Mutator.MutatorType.SHIELD) {  //We're invincible with a shield on
-            m_isActive = false;
-            m_health--;
-            m_velocity.x = 0;
-            m_velocity.y = 0;
-            if (m_health > 0) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-        return false;
+        m_isActive = false;
+        m_health--;
+        m_velocity.x = 0;
+        m_velocity.y = 0;
+        return m_health > 0;
     }
     public int getHealth()
     {
@@ -101,7 +89,7 @@ public class Player extends Collidable implements MovedSubscriber
             }
 		}
 	}
-	
+
 	public void onReleased(){}
 	
 	public void onCentred(int type)
@@ -126,7 +114,7 @@ public class Player extends Collidable implements MovedSubscriber
         }
 		if(m_isActive)
         {
-            if(m_currentMutator != null)
+            if(m_currentMutator.m_isActive)
             {
                 m_currentMutator.draw(p,c);
             }
@@ -184,9 +172,15 @@ public class Player extends Collidable implements MovedSubscriber
     {
         m_currentMutator.setType(m);
         m_currentMutator.activate();
+        m_currentMutator.setPosition(m_position.x, m_position.y);
     }
     public Mutator getMutator()
     {
         return m_currentMutator;
+    }
+
+    public boolean hasActiveShield()
+    {
+        return m_currentMutator.m_isActive && m_currentMutator.getType() == Mutator.MutatorType.SHIELD;
     }
 }

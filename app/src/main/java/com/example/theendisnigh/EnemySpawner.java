@@ -10,36 +10,25 @@ import java.util.Random;
 /**
  * Created by Harry on 11/02/2015.
  */
-//@TODO: Implement a class that can spawn different types of enemies based on either score or time.
 public class EnemySpawner
 {
     private final long SPAWN_PERIOD = 750L; // Adjust to suit timing. We could alter this depending on what weapons the player has
     private long lastTime = System.currentTimeMillis() - SPAWN_PERIOD;
     private float interpTime = 0f;
     private int m_mutations = 0;
-    private final long MUTATE_TIMER = 1000L * 30L * 5L; //2 mins 50
     private final int NUM_SPAWN_POINTS = 20;
-    private int m_enemyPoints;
-    private int m_enemyLimit;
-    private int m_currentCount;
-    private int m_currentWavePoints;
     private List<Vector2F> m_spawnLocations;
     private ArrayList<EnemyConfig> m_enemySetup;
     private int m_fieldWidth;
     private int m_fieldHeight;
     public EnemySpawner()
     {
-        m_enemyLimit = 0;
-        m_currentWavePoints = 20;
         m_spawnLocations = new ArrayList<Vector2F>();
     }
-    public EnemySpawner(int limit, int xWidth, int yWidth)
+    public EnemySpawner(int xWidth, int yWidth)
     {
-        m_enemyLimit = 10;
-        m_enemyLimit = limit;
         m_fieldWidth = xWidth + 20;
         m_fieldHeight = yWidth + 20;
-        m_currentWavePoints = 20;
         m_spawnLocations = new ArrayList<Vector2F>();
         setEnemySpawns();
 
@@ -47,14 +36,6 @@ public class EnemySpawner
     public void setEnemyConfigs(ArrayList<EnemyConfig> configs)
     {
         m_enemySetup = configs;
-        //@TODO Move to a wave function that is called once and passed to this.
-        int[] idsTEMP = new int[m_enemySetup.size()];
-        int[] weightsTEMP = new int[m_enemySetup.size()];
-        for(int i = 0; i < m_enemySetup.size(); i++)
-        {
-            idsTEMP[i] = m_enemySetup.get(i).m_id;
-            weightsTEMP[i] = m_enemySetup.get(i).m_weight;
-        }
     }
     private void setEnemySpawns()
     {
@@ -136,15 +117,6 @@ public class EnemySpawner
         m_fieldHeight = h;
     }
 
-    public void draw(Paint p, Canvas c)
-    {
-        /*p.setColor(Color.WHITE);
-        for(int i = 0; i < NUM_SPAWN_POINTS; i++)
-        {
-            c.drawRect(m_spawnLocations.get(i).x-10, m_spawnLocations.get(i).y-10, m_spawnLocations.get(i).x+10, m_spawnLocations.get(i).y+10, p);
-        }*/
-    }
-
     private EnemyConfig getRandomEnemy()
     {
         int maxWeight = 0;
@@ -172,6 +144,7 @@ public class EnemySpawner
     private void interpolateWeight()
     {
         float time = System.currentTimeMillis() - lastTime;
+        long MUTATE_TIMER = 1000L * 30L * 5L;
         interpTime += time / MUTATE_TIMER;
         if(interpTime < 1) {
             for (int i = 0; i < m_enemySetup.size(); i++) {
