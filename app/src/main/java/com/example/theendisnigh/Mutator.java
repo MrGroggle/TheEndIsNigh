@@ -42,11 +42,23 @@ public class Mutator extends Collidable {
     private Bitmap m_iceImage;
     private Bitmap m_poisonImage;
     private MutatorType m_type;
-    private int m_poisonCount;
+    private int m_pulseCounter;
+    private int m_numberOfPulses;
 
     public Mutator(MutatorType type)
     {
         setType(type);
+    }
+
+    public void setFromConfig(MutatorConfig config)
+    {
+        m_mutatorImage = config.m_mutatorImage;
+        m_damage = config.m_damage;
+        m_radius = config.m_radius;
+        m_canMove = config.m_canMove;
+        m_duration = config.m_duration;
+        m_pulse = config.m_pulse;
+        m_numberOfPulses = (int)Math.floor(config.m_duration / config.m_pulse);
     }
     public void setType(MutatorType type)
     {
@@ -69,7 +81,6 @@ public class Mutator extends Collidable {
                 m_canMove = true;
                 m_colour = Color.argb(125, 0, 255, 0);
                 m_mutatorImage = (m_poisonImage != null ? Bitmap.createScaledBitmap(m_poisonImage, (int)m_radius*2, (int)m_radius*2, true) : null);
-                m_poisonCount = 0;
                 break;
             case POISON:
                 m_duration = 7500L;
@@ -107,11 +118,10 @@ public class Mutator extends Collidable {
     public void activate()
     {
         m_isActive = true;
-        m_lastTime = System.currentTimeMillis();
     }
     public boolean updateMutator()
     {
-        boolean generatePoison = false;
+        boolean generateMutator = false;
 
         long currTime = System.currentTimeMillis();
         if(m_isActive) {
@@ -121,9 +131,9 @@ public class Mutator extends Collidable {
                 m_totalTime += m_pulseTime;
                 m_pulseTime = 0L;
                 if (m_type == MutatorType.POISON_SOURCE) {
-                    generatePoison = true;
-                    m_poisonCount++;
-                    if(m_poisonCount > 3)
+                    generateMutator = true;
+                    m_pulseCounter++;
+                    if(m_pulseCounter > m_numberOfPulses)
                     {
                         m_isActive = false;
                     }
@@ -135,7 +145,7 @@ public class Mutator extends Collidable {
             }
         }
         m_lastTime = currTime;
-        return generatePoison;
+        return generateMutator;
     }
 
     public void draw(Paint p, Canvas c)

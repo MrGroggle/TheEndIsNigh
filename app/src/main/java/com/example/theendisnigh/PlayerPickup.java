@@ -1,5 +1,6 @@
 package com.example.theendisnigh;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,6 +13,8 @@ import java.util.Random;
 public class PlayerPickup extends Collidable
 {
     private Mutator.MutatorType m_type;
+    private MutatorConfig m_config;
+    private Bitmap m_currentImage, m_poison, m_fire, m_freeze, m_shield;
 
     PlayerPickup(float xPos, float yPos, Mutator.MutatorType type)
     {
@@ -20,17 +23,40 @@ public class PlayerPickup extends Collidable
         m_isActive = false;
         m_type = type;
     }
+    public void setFromConfig(MutatorConfig config)
+    {
+        m_currentImage = config.m_pickupImage;
+        m_config = config;
+
+    }
     public void setMutator(Mutator.MutatorType type)
     {
         m_type = type;
+        switch (type)
+        {
+            case SHIELD:
+                m_currentImage = m_shield;
+                break;
+            case FREEZE:
+                m_currentImage = m_freeze;
+                break;
+            case FIRE:
+                m_currentImage = m_fire;
+                break;
+            case POISON:
+            case POISON_SOURCE:
+                m_currentImage = m_poison;
+                break;
+            default:
+                break;
+        }
     }
 
     public void onPickup(Player p)
     {
         if(!p.getMutator().m_isActive) {
-            p.setPlayerMutator(m_type);
-            int newType = new Random().nextInt(Mutator.MutatorType.COUNT.ordinal());
-            setMutator(Mutator.MutatorType.fromInt(newType));
+            //p.setPlayerMutator(m_type);
+            p.setMutatorFromConfig(m_config);
             m_isActive = false;
         }
     }
@@ -39,31 +65,31 @@ public class PlayerPickup extends Collidable
     {
         if(m_isActive) {
             p.setStrokeWidth(3);
-            p.setColor(getColour());
             c.save();
-            c.drawCircle(m_position.x, m_position.y, m_radius, p);
+            c.drawBitmap(m_currentImage, m_position.x - m_currentImage.getWidth()/2, m_position.y - m_currentImage.getHeight()/2, null);
+            //c.drawCircle(m_position.x, m_position.y, m_radius, p);
             c.restore();
         }
     }
-
-    private int getColour()
+    public void setImage(Mutator.MutatorType m, Bitmap s)
     {
-        if(m_type == Mutator.MutatorType.FIRE)
+        switch (m)
         {
-            return Color.RED;
+            case SHIELD:
+                m_shield = s;
+                break;
+            case FREEZE:
+                m_freeze = s;
+                break;
+            case FIRE:
+                m_fire = s;
+                break;
+            case POISON:
+            case POISON_SOURCE:
+                m_poison = s;
+                break;
+            default:
+                break;
         }
-        else if(m_type == Mutator.MutatorType.POISON_SOURCE)
-        {
-            return Color.GREEN;
-        }
-        else if(m_type == Mutator.MutatorType.FREEZE)
-        {
-            return Color.CYAN;
-        }
-        else if(m_type == Mutator.MutatorType.SHIELD)
-        {
-            return Color.BLUE;
-        }
-        return Color.BLACK;
     }
 }

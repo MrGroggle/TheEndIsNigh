@@ -13,12 +13,14 @@ import java.util.ArrayList;
  */
 public class XMLPullParserHandler
 {
-    private ArrayList<EnemyConfig> m_configs = new ArrayList<EnemyConfig>();
-    private EnemyConfig m_tempConfig;
+    private ArrayList<EnemyConfig> enemyConfigs = new ArrayList<EnemyConfig>();
+    private ArrayList<MutatorConfig> mutatorConfigs = new ArrayList<MutatorConfig>();
+    private EnemyConfig m_enemyConfig;
+    private MutatorConfig m_mutatorConfig;
     private String m_tempText;
 
 
-    public ArrayList<EnemyConfig> parse(XmlResourceParser xp)
+    public ArrayList<EnemyConfig> parseEnemyConfigs(XmlResourceParser xp)
     {
         try{
             /*XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -36,7 +38,7 @@ public class XMLPullParserHandler
                     case XmlResourceParser.START_TAG:
                         if(tagname.equalsIgnoreCase("zombie"))
                         {
-                            m_tempConfig = new EnemyConfig();
+                            m_enemyConfig = new EnemyConfig();
                         }
                         break;
                     case XmlResourceParser.TEXT:
@@ -45,52 +47,52 @@ public class XMLPullParserHandler
                     case XmlResourceParser.END_TAG:
                         if(tagname.equalsIgnoreCase("zombie"))
                         {
-                            m_configs.add(m_tempConfig);
+                            enemyConfigs.add(m_enemyConfig);
                         }
                         else if(tagname.equalsIgnoreCase("id"))
                         {
-                            m_tempConfig.m_id = Integer.parseInt(m_tempText);
+                            m_enemyConfig.m_id = Integer.parseInt(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("tag"))
                         {
-                            m_tempConfig.m_tag = m_tempText;
+                            m_enemyConfig.m_tag = m_tempText;
                         }
                         else if(tagname.equalsIgnoreCase("radius"))
                         {
-                            m_tempConfig.m_radius = Float.parseFloat(m_tempText);
+                            m_enemyConfig.m_radius = Float.parseFloat(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("mass"))
                         {
-                            m_tempConfig.m_mass = Float.parseFloat(m_tempText);
+                            m_enemyConfig.m_mass = Float.parseFloat(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("speed"))
                         {
-                            m_tempConfig.m_speed = Float.parseFloat(m_tempText);
+                            m_enemyConfig.m_speed = Float.parseFloat(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("hitpoints"))
                         {
-                            m_tempConfig.m_hp = Integer.parseInt(m_tempText);
+                            m_enemyConfig.m_hp = Integer.parseInt(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("score"))
                         {
-                            m_tempConfig.m_score = Integer.parseInt(m_tempText);
+                            m_enemyConfig.m_score = Integer.parseInt(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("startweight"))
                         {
-                            m_tempConfig.m_startWeight = Integer.parseInt(m_tempText);
-                            m_tempConfig.m_weight = Integer.parseInt(m_tempText);
+                            m_enemyConfig.m_startWeight = Integer.parseInt(m_tempText);
+                            m_enemyConfig.m_weight = Integer.parseInt(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("endweight"))
                         {
-                            m_tempConfig.m_endWeight = Integer.parseInt(m_tempText);
+                            m_enemyConfig.m_endWeight = Integer.parseInt(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("pointvalue"))
                         {
-                            m_tempConfig.m_pointVal = Integer.parseInt(m_tempText);
+                            m_enemyConfig.m_pointVal = Integer.parseInt(m_tempText);
                         }
                         else if(tagname.equalsIgnoreCase("colour"))
                         {
-                            m_tempConfig.m_paintTEMP = Color.parseColor(m_tempText);
+                            m_enemyConfig.m_paintTEMP = Color.parseColor(m_tempText);
                         }
                         break;
                     default:
@@ -101,6 +103,49 @@ public class XMLPullParserHandler
         }catch (XmlPullParserException e) { e.printStackTrace();}
         catch (IOException e){e.printStackTrace();}
 
-        return m_configs;
+        return enemyConfigs;
+    }
+    public ArrayList<MutatorConfig> parseMutatorConfigs(XmlResourceParser xp)
+    {
+        try{
+            /*XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            XmlPullParser parser = factory.newPullParser();
+
+            parser.setInput(is, null);*/
+
+            int eventType = xp.getEventType();
+            while(eventType != XmlResourceParser.END_DOCUMENT)
+            {
+                String tagname = xp.getName();
+                switch (eventType)
+                {
+                    case XmlResourceParser.START_TAG:
+                        if(tagname.equalsIgnoreCase("mutator"))
+                        {
+                            m_mutatorConfig = new MutatorConfig();
+                        }
+                        break;
+                    case XmlResourceParser.TEXT:
+                        m_tempText = xp.getText();
+                        break;
+                    case XmlResourceParser.END_TAG:
+                        if(tagname.equalsIgnoreCase("mutator"))
+                        {
+                            mutatorConfigs.add(m_mutatorConfig);
+                        }
+                        else if(tagname.equalsIgnoreCase("id"))
+                        {
+                            //m_mutatorConfig.m_mutatorImage = Integer.parseInt(m_tempText);
+                        }
+                    default:
+                        break;
+                }
+                eventType = xp.next();
+            }
+        }catch (XmlPullParserException e) { e.printStackTrace();}
+        catch (IOException e){e.printStackTrace();}
+
+        return mutatorConfigs;
     }
 }

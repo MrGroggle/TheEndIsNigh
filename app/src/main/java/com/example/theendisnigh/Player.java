@@ -184,6 +184,12 @@ public class Player extends Collidable implements MovedSubscriber
     {
         return m_rotation;
     }
+    public void setMutatorFromConfig(MutatorConfig config)
+    {
+        m_currentMutator.setFromConfig(config);
+        m_currentMutator.activate();
+        m_currentMutator.setPosition(m_position.x, m_position.y);
+    }
     public void setPlayerMutator(Mutator.MutatorType m)
     {
         m_currentMutator.setType(m);

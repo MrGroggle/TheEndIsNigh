@@ -4,7 +4,7 @@ package com.example.theendisnigh;
 /**
  * Created by Harry on 23/02/2015.
  */
-public class EnemyConfig
+public class EnemyConfig extends ConfigBase
 {
     public int m_score;
     public int m_hp;

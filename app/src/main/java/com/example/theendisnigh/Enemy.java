@@ -70,7 +70,6 @@ public class Enemy extends Collidable
     }
     public void setFromConfig(EnemyConfig e)
     {
-
         m_mass = e.m_mass;
         m_maxSpeed = e.m_speed;
         m_maxForce = m_maxSpeed/10;
@@ -82,7 +81,6 @@ public class Enemy extends Collidable
         m_slowed = false;
         m_onFire = false;
         m_frozen = false;
-
     }
 
     private Vector2F getBehaviour()
