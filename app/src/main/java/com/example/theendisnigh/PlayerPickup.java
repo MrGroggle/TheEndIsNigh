@@ -12,33 +12,26 @@ import java.util.Random;
 public class PlayerPickup extends Collidable
 {
     private Mutator.MutatorType m_type;
-    private Mutator m_mutator;
 
     PlayerPickup(float xPos, float yPos, Mutator.MutatorType type)
     {
         super(xPos, yPos);
-        m_radius = 10;
-        m_mutator = new Mutator(type);
+        m_radius = 15;
         m_isActive = false;
         m_type = type;
     }
     public void setMutator(Mutator.MutatorType type)
     {
-        m_mutator.setType(type);
         m_type = type;
     }
 
     public void onPickup(Player p)
     {
-        if(p.getMutator() == null) {
-            m_isActive = false;
-            p.addMutator(m_mutator);
-
-
+        if(!p.getMutator().m_isActive) {
+            p.setPlayerMutator(m_type);
             int newType = new Random().nextInt(Mutator.MutatorType.COUNT.ordinal());
-            if (newType < Mutator.MutatorType.COUNT.ordinal()) {
-                setMutator(Mutator.MutatorType.fromInt(newType));
-            }
+            setMutator(Mutator.MutatorType.fromInt(newType));
+            m_isActive = false;
         }
     }
 
@@ -59,17 +52,18 @@ public class PlayerPickup extends Collidable
         {
             return Color.RED;
         }
-        else if(m_type == Mutator.MutatorType.POISON)
+        else if(m_type == Mutator.MutatorType.POISON_SOURCE)
         {
             return Color.GREEN;
         }
         else if(m_type == Mutator.MutatorType.FREEZE)
         {
+            return Color.CYAN;
+        }
+        else if(m_type == Mutator.MutatorType.SHIELD)
+        {
             return Color.BLUE;
         }
-        else
-        {
-            return Color.BLACK;
-        }
+        return Color.BLACK;
     }
 }

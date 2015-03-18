@@ -306,6 +306,9 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
     {
         m_quadTree.clear();
         m_quadTree.insert(m_player);
+        if(m_player.getMutator().m_isActive) {
+            m_quadTree.insert(m_player.getMutator());
+        }
         for(int i = 0; i<MAX_PLAYER_BULLETS;i++)
         {
             if(m_playerProjectiles[i].m_isActive)
@@ -327,6 +330,14 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                 m_quadTree.insert(m_playerPickups[i]);
             }
         }
+        for(int i = 0; i < m_player.m_poisonCollide.length; i++)
+        {
+            if(m_player.m_poisonCollide[i].m_isActive)
+            {
+                m_quadTree.insert(m_player.m_poisonCollide[i]);
+            }
+        }
+
     }
     public void playerCollision()
     {
@@ -345,7 +356,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                             @Override
                             public void run() {
                                 m_player.m_isActive = true;
-                                m_player.addMutator(new Mutator(Mutator.MutatorType.SHIELD));
+                                m_player.setPlayerMutator(Mutator.MutatorType.SHIELD);
                             }
                         }, 3000); //Wait 5 seconds
                     }else
@@ -385,13 +396,74 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                     {
                         if(m_playerProjectiles[i].checkCollision(returnCollidables.get(x)))
                         {
-                            if(((Enemy)returnCollidables.get(x)).checkDeadAfterHit())
+                            if(((Enemy)returnCollidables.get(x)).checkDeadAfterHit(10, true))
                             {
                                 m_player.m_currentScore += ((Enemy)returnCollidables.get(x)).m_score;
                                 generatePickup(((Enemy)returnCollidables.get(x)));
                             }
                             m_playerProjectiles[i].m_isActive = false;
                         }
+                    }
+                }
+            }
+        }
+    }
+    private void poisonCollision()
+    {
+        List<Collidable> returnCollidables = new ArrayList<Collidable>();
+        for(int i = 0; i < m_player.m_poisonCollide.length; i++)
+        {
+            if(m_player.m_poisonCollide[i].m_isActive)
+            {
+                m_quadTree.retrieve(returnCollidables, m_player.m_poisonCollide[i]);
+
+                for(int x = 0; x < returnCollidables.size(); x++)
+                {
+                    if(returnCollidables.get(x) instanceof Enemy && returnCollidables.get(x).m_isActive)
+                    {
+                        if(m_player.m_poisonCollide[i].checkCollision(returnCollidables.get(x)))
+                        {
+                            if(((Enemy)returnCollidables.get(x)).checkDeadAfterHit(m_player.m_poisonCollide[i].getDamage(), true))
+                            {
+                                m_player.m_currentScore += ((Enemy)returnCollidables.get(x)).m_score;
+                                generatePickup(((Enemy)returnCollidables.get(x)));
+                            }
+                        }else
+                        {
+                            ((Enemy)returnCollidables.get(x)).slowEnemy(false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void mutatorCollision()
+    {
+        List<Collidable> returnCollidables = new ArrayList<Collidable>();
+        m_quadTree.retrieve(returnCollidables, m_player.getMutator());
+
+        for(int i = 0; i < returnCollidables.size(); i++)
+        {
+            if(returnCollidables.get(i) instanceof Enemy)
+            {
+                if(m_player.getMutator().checkCollision(returnCollidables.get(i)))
+                {
+                    switch (m_player.getMutator().getType())
+                    {
+                        case FIRE:
+                            ((Enemy)returnCollidables.get(i)).setFireDamage(m_player.getMutator().getDamage());
+                            break;
+                        case FREEZE:
+                            ((Enemy)returnCollidables.get(i)).setFrozen();
+                            break;
+                        case SHIELD:
+                            if(((Enemy)returnCollidables.get(i)).checkDeadAfterHit(m_player.getMutator().getDamage(), true))
+                            {
+                                m_player.m_currentScore += ((Enemy)returnCollidables.get(i)).m_score;
+                                generatePickup(((Enemy)returnCollidables.get(i)));
+                            }
+                            break;
                     }
                 }
             }
@@ -452,6 +524,8 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_spawner.spawnEnemies(m_enemyPool);
         updateQuadTree();
         bulletCollision();
+        poisonCollision();
+        mutatorCollision();
         if(m_player.m_isActive)
             playerCollision();
         if(m_player.m_shouldPause)
@@ -506,7 +580,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             WORLD SPACE DRAWING
         */
         c.drawBitmap(m_background, 0, 0, null);
-        m_spawner.draw(paint,c);
         m_player.draw(paint, c);
         for(int i = 0; i<MAX_ENEMIES; i++)
         {

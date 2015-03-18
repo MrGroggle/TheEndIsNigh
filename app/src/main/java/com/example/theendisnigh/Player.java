@@ -15,6 +15,8 @@ public class Player extends Collidable implements MovedSubscriber
     public long m_currentScore = 0l;
 // TODO: Add array of mutators (max size 5, 1 source, 3 poison splats and a shield) we can add to from mutator.
 // TODO: Add new poison source mutator that generates mutators.
+    public Mutator[] m_poisonCollide;
+    private final int NUM_COLLIDERS = 3;
     private boolean m_moving = false;
     private boolean m_shooting = false;
     private Sprite m_playerSprite;
@@ -23,7 +25,7 @@ public class Player extends Collidable implements MovedSubscriber
     private int m_health = 3;
     private final long SHOOT_PERIOD = 200L; // Adjust to suit timing. We could alter this depending on what weapons the player has
     private long lastTime = System.currentTimeMillis() - SHOOT_PERIOD;
-    private Mutator m_currentMutator = null;
+    private Mutator m_currentMutator;
 
 	public Player()
 	{
@@ -38,6 +40,14 @@ public class Player extends Collidable implements MovedSubscriber
 		m_radius = 32f;
         MOVEMENT_SPEED = 10f;
         m_isActive = true;
+        m_poisonCollide = new Mutator[NUM_COLLIDERS];
+        for(int i = 0; i < NUM_COLLIDERS; i++)
+        {
+            m_poisonCollide[i] = new Mutator(Mutator.MutatorType.POISON);
+            m_poisonCollide[i].m_isActive = false;
+        }
+        m_currentMutator = new Mutator(Mutator.MutatorType.SHIELD);
+        m_currentMutator.activate();
 	}
 
     public void setSprite(Bitmap s)
@@ -47,17 +57,18 @@ public class Player extends Collidable implements MovedSubscriber
 
     public boolean playerHit()
     {
-        m_isActive = false;
-        m_health--;
-        m_velocity.x = 0;
-        m_velocity.y = 0;
-        if(m_health > 0) {
-            return false;
+        if(m_currentMutator.getType() != Mutator.MutatorType.SHIELD) {  //We're invincible with a shield on
+            m_isActive = false;
+            m_health--;
+            m_velocity.x = 0;
+            m_velocity.y = 0;
+            if (m_health > 0) {
+                return false;
+            } else {
+                return true;
+            }
         }
-        else
-        {
-            return true;
-        }
+        return false;
     }
     public int getHealth()
     {
@@ -106,16 +117,21 @@ public class Player extends Collidable implements MovedSubscriber
 
 	public void draw(Paint p, Canvas c)
 	{
+        for(int i = 0; i < NUM_COLLIDERS; i++)
+        {
+            if(m_poisonCollide[i].m_isActive)
+            {
+                m_poisonCollide[i].draw(p,c);
+            }
+        }
 		if(m_isActive)
         {
-
-            p.setStrokeWidth(3);
-            c.save();
-            c.rotate((float) Math.toDegrees(m_rotation), m_position.x, m_position.y);
             if(m_currentMutator != null)
             {
                 m_currentMutator.draw(p,c);
             }
+            c.save();
+            c.rotate((float) Math.toDegrees(m_rotation), m_position.x, m_position.y);
             c.drawBitmap(m_playerImage, m_position.x-m_playerImage.getWidth()/2, m_position.y-m_playerImage.getHeight()/2, null);
             c.restore();
 
@@ -131,16 +147,29 @@ public class Player extends Collidable implements MovedSubscriber
 			m_velocity.y = 0f;
 			
 		updatePosition(m_velocity.x * MOVEMENT_SPEED, m_velocity.y * MOVEMENT_SPEED);
-        if(m_currentMutator != null)
+        for(int i = 0; i < NUM_COLLIDERS; i++)
         {
-            m_currentMutator.updatePos(this);
-            m_currentMutator.setPosition(m_position.x, m_position.y);
-            if(!m_currentMutator.m_isActive)
+            if(m_poisonCollide[i].m_isActive)
             {
-                m_currentMutator = null;
+                m_poisonCollide[i].updateMutator();
             }
         }
-
+        if(m_currentMutator.m_isActive)
+        {
+            m_currentMutator.updatePos(this);
+            if(m_currentMutator.updateMutator())
+            {
+                for(int i = 0; i < NUM_COLLIDERS; i++)
+                {
+                    if(!m_poisonCollide[i].m_isActive)
+                    {
+                        m_poisonCollide[i].setPosition(m_position.x, m_position.y);
+                        m_poisonCollide[i].activate();
+                        break;
+                    }
+                }
+            }
+        }
 	}
 
     public PointF getRadialPosition()
@@ -151,9 +180,10 @@ public class Player extends Collidable implements MovedSubscriber
     {
         return m_rotation;
     }
-    public void addMutator(Mutator m)
+    public void setPlayerMutator(Mutator.MutatorType m)
     {
-        m_currentMutator = m;
+        m_currentMutator.setType(m);
+        m_currentMutator.activate();
     }
     public Mutator getMutator()
     {

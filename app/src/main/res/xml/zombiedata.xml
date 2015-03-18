@@ -7,7 +7,7 @@
         <Radius>32</Radius>
         <Mass>5</Mass>
         <Speed>2</Speed>
-        <Hitpoints>1</Hitpoints>
+        <Hitpoints>10</Hitpoints>
         <Score>100</Score>
         <StartWeight>100</StartWeight>
         <EndWeight>50</EndWeight>
@@ -20,7 +20,7 @@
         <Radius>27.5</Radius>
         <Mass>3</Mass>
         <Speed>5</Speed>
-        <Hitpoints>1</Hitpoints>
+        <Hitpoints>10</Hitpoints>
         <Score>200</Score>
         <StartWeight>0</StartWeight>
         <EndWeight>20</EndWeight>
@@ -33,7 +33,7 @@
         <Radius>42</Radius>
         <Mass>8</Mass>
         <Speed>1</Speed>
-        <Hitpoints>5</Hitpoints>
+        <Hitpoints>50</Hitpoints>
         <Score>250</Score>
         <StartWeight>0</StartWeight>
         <EndWeight>20</EndWeight>
@@ -46,7 +46,7 @@
         <Radius>32</Radius>
         <Mass>5</Mass>
         <Speed>1</Speed>
-        <Hitpoints>1</Hitpoints>
+        <Hitpoints>10</Hitpoints>
         <Score>150</Score>
         <StartWeight>0</StartWeight>
         <EndWeight>10</EndWeight>
