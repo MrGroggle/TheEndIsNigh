@@ -49,14 +49,28 @@ public class Player extends Collidable implements MovedSubscriber
     {
         m_playerImage = Bitmap.createScaledBitmap(s, (int)m_radius*2, (int)m_radius*2, true);
     }
-
+    public void setMutatorSprites(Mutator.MutatorType m, Bitmap s)
+    {
+        m_currentMutator.setMutatorImage(m, s);
+        if(m == Mutator.MutatorType.POISON) {
+            for (int i = 0; i < NUM_COLLIDERS; i++) {
+                m_poisonCollide[i].setMutatorImage(m, s);
+                m_poisonCollide[i].setType(m);
+            }
+        }
+    }
     public boolean playerHit()
     {
         m_isActive = false;
         m_health--;
         m_velocity.x = 0;
         m_velocity.y = 0;
-        return m_health <= 0;
+        if(m_health <= 0)
+        {
+            m_currentMutator.m_isActive = false;
+            return true;
+        }
+        return false;
     }
     public int getHealth()
     {
@@ -133,7 +147,6 @@ public class Player extends Collidable implements MovedSubscriber
 			m_velocity.x = 0f;
 		if(Math.abs(m_velocity.y) < 0.1f)
 			m_velocity.y = 0f;
-			
 		updatePosition(m_velocity.x * MOVEMENT_SPEED, m_velocity.y * MOVEMENT_SPEED);
         for(int i = 0; i < NUM_COLLIDERS; i++)
         {
@@ -159,7 +172,10 @@ public class Player extends Collidable implements MovedSubscriber
             }
         }
 	}
-
+    public void addHealth()
+    {
+        m_health++;
+    }
     public PointF getRadialPosition()
     {
         return new PointF(m_position.x + m_radius * (float)Math.cos(m_rotation),m_position.y + m_radius * (float)Math.sin(m_rotation));

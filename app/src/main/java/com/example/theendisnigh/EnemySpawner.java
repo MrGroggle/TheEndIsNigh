@@ -27,8 +27,8 @@ public class EnemySpawner
     }
     public EnemySpawner(int xWidth, int yWidth)
     {
-        m_fieldWidth = xWidth + 20;
-        m_fieldHeight = yWidth + 20;
+        m_fieldWidth = xWidth + 40;
+        m_fieldHeight = yWidth + 40;
         m_spawnLocations = new ArrayList<Vector2F>();
         setEnemySpawns();
 

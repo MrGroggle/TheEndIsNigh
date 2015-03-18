@@ -97,8 +97,8 @@ public class Quadtree
         }
 
         m_objects.add(c);
-        int MAX_OBJECTS = 10;
-        int MAX_LEVELS = 5;
+        int MAX_OBJECTS = 20;
+        int MAX_LEVELS = 4;
         if(m_objects.size() > MAX_OBJECTS && m_level < MAX_LEVELS)
         {
             if(m_nodes[0] == null)

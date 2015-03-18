@@ -1,5 +1,6 @@
 package com.example.theendisnigh;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -28,6 +29,7 @@ public class Mutator extends Collidable {
     }
 
     private static long m_totalTime = 0L;
+    private static long m_pulseTime = 0L;
 
     private long m_lastTime;
     private long m_duration;
@@ -35,7 +37,12 @@ public class Mutator extends Collidable {
     private int m_damage;
     private boolean m_canMove;
     private int m_colour;
+    private Bitmap m_mutatorImage;
+    private Bitmap m_fireImage;
+    private Bitmap m_iceImage;
+    private Bitmap m_poisonImage;
     private MutatorType m_type;
+    private int m_poisonCount;
 
     public Mutator(MutatorType type)
     {
@@ -52,6 +59,7 @@ public class Mutator extends Collidable {
                 m_radius = 100;
                 m_canMove = true;
                 m_colour = Color.argb(125, 255, 0, 0);
+                m_mutatorImage = (m_fireImage != null ? Bitmap.createScaledBitmap(m_fireImage, (int)m_radius*2, (int)m_radius*2, true) : null);
                 break;
             case POISON_SOURCE:
                 m_duration = 10000L;
@@ -60,20 +68,24 @@ public class Mutator extends Collidable {
                 m_radius = 20;
                 m_canMove = true;
                 m_colour = Color.argb(125, 0, 255, 0);
+                m_mutatorImage = (m_poisonImage != null ? Bitmap.createScaledBitmap(m_poisonImage, (int)m_radius*2, (int)m_radius*2, true) : null);
+                m_poisonCount = 0;
                 break;
             case POISON:
                 m_duration = 7500L;
-                m_damage = 1;
+                m_damage = 3;
                 m_radius = 100;
                 m_canMove = false;
                 m_colour = Color.argb(125, 0, 255, 0);
+                m_mutatorImage = (m_poisonImage != null ? Bitmap.createScaledBitmap(m_poisonImage, (int)m_radius*2, (int)m_radius*2, true) : null);
                 break;
             case FREEZE:
-                m_duration = 750L;
+                m_duration = 1200L;
                 m_damage = 0;
                 m_radius = 250;
                 m_canMove = false;
                 m_colour = Color.argb(125, 0, 255, 255);
+                m_mutatorImage = (m_iceImage != null ? Bitmap.createScaledBitmap(m_iceImage, (int)m_radius*2, (int)m_radius*2, true) : null);
                 break;
             case SHIELD:
                 m_radius = 50;
@@ -81,11 +93,13 @@ public class Mutator extends Collidable {
                 m_damage = 10;
                 m_canMove = true;
                 m_colour = Color.argb(125, 0, 0, 255);
+                m_mutatorImage = null;
                 break;
             default:
                 m_duration = 0L;
                 m_damage = 0;
                 m_colour = Color.argb(0,0,0,0);
+                m_mutatorImage = null;
                 break;
         }
 
@@ -98,14 +112,21 @@ public class Mutator extends Collidable {
     public boolean updateMutator()
     {
         boolean generatePoison = false;
-        if(m_isActive) {
-            long currTime = System.currentTimeMillis();
-            if ((currTime - m_lastTime) >= m_pulse) {
-                m_totalTime += (currTime - m_lastTime);
 
-                m_lastTime = currTime;
+        long currTime = System.currentTimeMillis();
+        if(m_isActive) {
+
+            m_pulseTime += (currTime - m_lastTime);
+            if (m_pulseTime >= m_pulse) {
+                m_totalTime += m_pulseTime;
+                m_pulseTime = 0L;
                 if (m_type == MutatorType.POISON_SOURCE) {
                     generatePoison = true;
+                    m_poisonCount++;
+                    if(m_poisonCount > 3)
+                    {
+                        m_isActive = false;
+                    }
                 }
                 if (m_totalTime > m_duration) {
                     m_totalTime = 0L;
@@ -113,6 +134,7 @@ public class Mutator extends Collidable {
                 }
             }
         }
+        m_lastTime = currTime;
         return generatePoison;
     }
 
@@ -123,7 +145,15 @@ public class Mutator extends Collidable {
             p.setColor(m_colour);
             p.setAlpha(125);
             c.save();
-            c.drawCircle(m_position.x, m_position.y, m_radius, p);
+            if(m_mutatorImage != null)
+            {
+                c.drawBitmap(m_mutatorImage, m_position.x - m_mutatorImage.getWidth()/2, m_position.y-m_mutatorImage.getHeight()/2, null);
+            }
+            else
+            {
+                c.drawCircle(m_position.x, m_position.y, m_radius, p);
+            }
+            //c.drawCircle(m_position.x, m_position.y, m_radius, p);
             c.restore();
             p.setAlpha(255);
         }
@@ -144,6 +174,25 @@ public class Mutator extends Collidable {
     public MutatorType getType()
     {
         return m_type;
+    }
+
+    public void setMutatorImage(MutatorType m, Bitmap s)
+    {
+        switch (m)
+        {
+            case FIRE:
+                m_fireImage = s;
+                return;
+            case FREEZE:
+                m_iceImage = s;
+                return;
+            case POISON:
+            case POISON_SOURCE:
+                m_poisonImage = s;
+                return;
+            default:
+                return;
+        }
     }
 
 }

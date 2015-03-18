@@ -197,6 +197,9 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         m_player = new Player(PLAY_AREA_WIDTH/2,PLAY_AREA_HEIGHT/2);
         m_player.setSprite(loadBitmap(R.drawable.player, getContext()));
         m_player.setMovementSpeed(10f);
+        m_player.setMutatorSprites(Mutator.MutatorType.FIRE, loadBitmap(R.drawable.firecircle,getContext()));
+        m_player.setMutatorSprites(Mutator.MutatorType.FREEZE, loadBitmap(R.drawable.icecircle,getContext()));
+        m_player.setMutatorSprites(Mutator.MutatorType.POISON, loadBitmap(R.drawable.poisoncircle,getContext()));
         m_playerProjectiles = new Projectile[MAX_PLAYER_BULLETS];
         m_enemyPool = new Enemy[MAX_ENEMIES];
         m_playerPickups = new PlayerPickup[MAX_PICKUPS];
@@ -399,6 +402,10 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                             if(((Enemy)returnCollidables.get(x)).checkDeadAfterHit(10, true))
                             {
                                 m_player.m_currentScore += ((Enemy)returnCollidables.get(x)).m_score;
+                                if(m_player.m_currentScore % 10000L == 0)
+                                {
+                                    m_player.addHealth();
+                                }
                                 generatePickup(((Enemy)returnCollidables.get(x)));
                             }
                             m_playerProjectiles[i].m_isActive = false;
@@ -614,7 +621,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         return isOver;
     }
 
-    public Bitmap loadBitmap(int resDrId, Context context)
+    public static Bitmap loadBitmap(int resDrId, Context context)
     {
         return loadBitmap(resDrId, 1, context);
     }

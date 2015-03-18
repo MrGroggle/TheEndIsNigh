@@ -44,7 +44,7 @@ public class Enemy extends Collidable
         m_radius = 20f;
         m_isActive = false;
     }
-    //@TODO Should probably timestep this
+
     public void update()
     {
         if(m_isActive && !m_frozen)
@@ -109,7 +109,7 @@ public class Enemy extends Collidable
         m_velocity.x = desiredVelocity.x;
         m_velocity.y = desiredVelocity.y;
 
-        updatePosition(m_velocity.x * MOVEMENT_SPEED * (m_slowed ? 0.5f : 1.f), m_velocity.y * MOVEMENT_SPEED * (m_slowed ? 0.5f : 1.f));
+        updatePosition(m_velocity.x * MOVEMENT_SPEED * (m_slowed ? 0.5f : 1.f), m_velocity.y * MOVEMENT_SPEED * (m_slowed ? 0.3f : 1.f));
     }
     private Vector2F seek()
     {
