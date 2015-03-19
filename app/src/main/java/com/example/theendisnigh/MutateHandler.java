@@ -55,10 +55,11 @@ public class MutateHandler
 
             for(int i = 0; i < m_mutatorSettings.size(); i++)
             {
-                weightSum += m_mutatorSettings.get(i).m_weighting;
-                if(number <= weightSum)
-                {
-                    return m_mutatorSettings.get(i);
+                if(m_mutatorSettings.get(i).m_weighting > 0) {
+                    weightSum += m_mutatorSettings.get(i).m_weighting;
+                    if (number <= weightSum) {
+                        return m_mutatorSettings.get(i);
+                    }
                 }
             }
         }

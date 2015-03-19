@@ -10,7 +10,6 @@ public class Timer {
     private long previousTimeNano;
 
     private long startTime;
-    private long previousStartTime;
     private boolean isTimerStarted;
 
     public Timer()
@@ -49,12 +48,8 @@ public class Timer {
     }
     public void stopTimer()
     {
-        if(isTimerStarted)
-        {
-            startTime = 0L;
-            previousStartTime = 0L;
-            isTimerStarted = false;
-        }
+        startTime = 0L;
+        isTimerStarted = false;
     }
 
 

@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 public class Enemy extends Collidable
 {
-    //private Sprite m_sprite;
     private Bitmap m_image;
     private Bitmap m_scaledImage;
     private Collidable m_target;
@@ -34,12 +33,7 @@ public class Enemy extends Collidable
 
     private int m_fireDamage = 0;
     private Timer m_timer;
-    //private long lastTime = System.nanoTime()/1000 - 200L;
 
-    public Enemy()
-    {
-        super();
-    }
     public Enemy(float xPos, float yPos)
     {
         super(xPos, yPos);
