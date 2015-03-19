@@ -28,7 +28,20 @@ public class MutateHandler
             }
         }
     }
-    private MutatorConfig getRandomMutator()
+
+    public MutatorConfig getMutator(Mutator.MutatorType type)
+    {
+        for(MutatorConfig m : m_mutatorSettings)
+        {
+            if(m.m_type == type)
+            {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    public MutatorConfig getRandomMutator()
     {
         int maxWeight = 0;
         for(int i = 0; i < m_mutatorSettings.size(); i++)

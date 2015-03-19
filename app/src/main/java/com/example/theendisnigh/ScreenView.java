@@ -147,6 +147,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 	private Projectile[] m_playerProjectiles;
     private Enemy[] m_enemyPool;
     private EnemySpawner m_spawner;
+    private MutateHandler m_mutateHandler;
 
     private PlayerPickup[] m_playerPickups;
 
@@ -173,9 +174,11 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         Bitmap background = loadBitmap(R.drawable.labbackground, context);
         m_background = Bitmap.createScaledBitmap(background, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT, true);
         m_spawner = new EnemySpawner(m_fieldWidth, m_fieldHeight);
+        m_mutateHandler = new MutateHandler();
 
-        XMLPullParserHandler parser = new XMLPullParserHandler();
+        XMLPullParserHandler parser = new XMLPullParserHandler(context);
         m_spawner.setEnemyConfigs(parser.parseEnemyConfigs(context.getResources().getXml(R.xml.zombiedata)));
+        m_mutateHandler.setMutatorConfigs(parser.parseMutatorConfigs(context.getResources().getXml(R.xml.mutatordata)));
 	}
 
     private void init()
@@ -190,12 +193,12 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 
         }
 
-        m_player = new Player(PLAY_AREA_WIDTH/2,PLAY_AREA_HEIGHT/2);
+        m_player = new Player(PLAY_AREA_WIDTH/2,PLAY_AREA_HEIGHT/2, m_mutateHandler.getMutator(Mutator.MutatorType.POISON), m_mutateHandler.getMutator(Mutator.MutatorType.SHIELD));
         m_player.setSprite(loadBitmap(R.drawable.player, getContext()));
         m_player.setMovementSpeed(10f);
-        m_player.setMutatorSprites(Mutator.MutatorType.FIRE, loadBitmap(R.drawable.firecircle,getContext()));
-        m_player.setMutatorSprites(Mutator.MutatorType.FREEZE, loadBitmap(R.drawable.icecircle,getContext()));
-        m_player.setMutatorSprites(Mutator.MutatorType.POISON, loadBitmap(R.drawable.poisoncircle,getContext()));
+        //m_player.setMutatorSprites(Mutator.MutatorType.FIRE, loadBitmap(R.drawable.firecircle,getContext()));
+        //m_player.setMutatorSprites(Mutator.MutatorType.FREEZE, loadBitmap(R.drawable.icecircle,getContext()));
+        //m_player.setMutatorSprites(Mutator.MutatorType.POISON, loadBitmap(R.drawable.poisoncircle,getContext()));
         m_playerProjectiles = new Projectile[MAX_PLAYER_BULLETS];
         m_enemyPool = new Enemy[MAX_ENEMIES];
         m_playerPickups = new PlayerPickup[MAX_PICKUPS];
@@ -214,8 +217,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         }
 
         for(int i = 0; i < MAX_PICKUPS; i++) {
-            int type = i % Mutator.MutatorType.COUNT.ordinal();
-            m_playerPickups[i] = new PlayerPickup(0, 0, Mutator.MutatorType.fromInt(type));
+            m_playerPickups[i] = new PlayerPickup(0, 0, m_mutateHandler.getRandomMutator());
         }
 
         m_moveStick.setMovedSubscriber(m_player);
@@ -314,15 +316,14 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                             postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    m_player.m_isActive = true;
-                                    m_player.setPlayerMutator(Mutator.MutatorType.SHIELD);
+                                m_player.setMutatorFromConfig(m_mutateHandler.getMutator(Mutator.MutatorType.SHIELD));
+                                m_player.m_isActive = true;
                                 }
-                            }, 3000); //Wait 5 seconds
+                            }, 3000); //Wait 3 seconds
                         } else {
                             if (getContext() instanceof GameActivity) {
                                 ((GameActivity) getContext()).onDeath();
                                 thread.setRunning(false);
-
                             }
                             //Do something here to move to highscores
                         }
@@ -356,10 +357,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                             if(m_enemyPool[x].checkDeadAfterHit(10, true))
                             {
                                 m_player.m_currentScore += m_enemyPool[x].m_score;
-                                if(m_player.m_currentScore % 10000L == 0)
-                                {
-                                    m_player.addHealth();
-                                }
                                 generatePickup(m_enemyPool[x]);
                             }
                             m_playerProjectiles[i].m_isActive = false;
@@ -371,20 +368,17 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
     }
     private void poisonCollision()
     {
-        List<Collidable> returnCollidables = new ArrayList<Collidable>();
         for(int i = 0; i < m_player.m_poisonCollide.length; i++)
         {
             if(m_player.m_poisonCollide[i].m_isActive)
             {
-                //m_quadTree.retrieve(returnCollidables, m_player.m_poisonCollide[i]);
-
                 for(int x = 0; x < MAX_ENEMIES; x++)
                 {
                     if(m_enemyPool[x].m_isActive)
                     {
                         if(m_player.m_poisonCollide[i].checkCollision(m_enemyPool[x]))
                         {
-                            if(m_enemyPool[x].checkDeadAfterHit(m_player.m_poisonCollide[i].getDamage(), true))
+                            if(m_enemyPool[x].checkDeadAfterDebuff(m_player.m_poisonCollide[i].getDamage(), true))
                             {
                                 m_player.m_currentScore += m_enemyPool[x].m_score;
                                 generatePickup(m_enemyPool[x]);
@@ -402,8 +396,6 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
     private void mutatorCollision()
     {
         if(m_player.getMutator().m_isActive) {
-            //List<Collidable> returnCollidables = new ArrayList<Collidable>();
-            //m_quadTree.retrieve(returnCollidables, m_player.getMutator());
 
             for (int i = 0; i < MAX_ENEMIES; i++) {
                 if (m_enemyPool[i].m_isActive) {
@@ -437,6 +429,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
             {
                 if(!p.m_isActive)
                 {
+                    p.setFromConfig(m_mutateHandler.getRandomMutator());
                     p.m_isActive = true;
                     p.setPosition(e.m_position.x, e.m_position.y);
                     return;
@@ -547,6 +540,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         }
         for(PlayerPickup p : m_playerPickups)
         {
+            p.update();
             p.draw(paint, c);
         }
         post(new Runnable() {

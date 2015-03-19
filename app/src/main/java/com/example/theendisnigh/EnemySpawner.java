@@ -1,8 +1,5 @@
 package com.example.theendisnigh;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -12,8 +9,8 @@ import java.util.Random;
  */
 public class EnemySpawner
 {
-    private final long SPAWN_PERIOD = 750L; // Adjust to suit timing. We could alter this depending on what weapons the player has
-    private long lastTime = System.currentTimeMillis() - SPAWN_PERIOD;
+    private final double SPAWN_PERIOD = 750.0; // Adjust to suit timing. We could alter this depending on what weapons the player has
+    //private long lastTime = TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS) - SPAWN_PERIOD;
     private float interpTime = 0f;
     private int m_mutations = 0;
     private final int NUM_SPAWN_POINTS = 20;
@@ -21,15 +18,19 @@ public class EnemySpawner
     private ArrayList<EnemyConfig> m_enemySetup;
     private int m_fieldWidth;
     private int m_fieldHeight;
+    private Timer m_timer;
+    private Timer m_interpTimer;
     public EnemySpawner()
     {
-        m_spawnLocations = new ArrayList<Vector2F>();
+        m_spawnLocations = new ArrayList<>();
     }
     public EnemySpawner(int xWidth, int yWidth)
     {
         m_fieldWidth = xWidth + 40;
         m_fieldHeight = yWidth + 40;
         m_spawnLocations = new ArrayList<Vector2F>();
+        m_timer = new Timer();
+        m_interpTimer = new Timer();
         setEnemySpawns();
 
     }
@@ -89,9 +90,9 @@ public class EnemySpawner
     {
         //m_currentCount = c.length;
 
-        long currTime = System.currentTimeMillis();
-
-        if((currTime - lastTime) >= SPAWN_PERIOD)
+        //long currTime = System.nanoTime()/1000;
+        m_timer.startTimer();
+        if(m_timer.getStartTimerMillis() >= SPAWN_PERIOD)
         {
             interpolateWeight();
             for(Enemy col : c)
@@ -103,7 +104,7 @@ public class EnemySpawner
                     col.m_position.x = point.x;
                     col.m_position.y = point.y;
                     col.m_isActive = true;
-                    lastTime = currTime;
+                    m_timer.stopTimer();
                     return;
                 }
             }
@@ -143,10 +144,11 @@ public class EnemySpawner
 
     private void interpolateWeight()
     {
-        float time = System.currentTimeMillis() - lastTime;
-        long MUTATE_TIMER = 1000L * 30L * 5L;
-        interpTime += time / MUTATE_TIMER;
-        if(interpTime < 1) {
+        //float time = System.nanoTime()/1000 - lastTime;
+        float MUTATE_TIMER = 1000 * 30 * 5;
+        m_interpTimer.startTimer();
+        interpTime = (float)m_interpTimer.getStartTimerMillis() / MUTATE_TIMER;
+        if(interpTime < MUTATE_TIMER) {
             for (int i = 0; i < m_enemySetup.size(); i++) {
                 m_enemySetup.get(i).m_weight = Math.round(m_enemySetup.get(i).m_startWeight + interpTime * (m_enemySetup.get(i).m_endWeight - m_enemySetup.get(i).m_startWeight));
             }
@@ -154,7 +156,7 @@ public class EnemySpawner
         else
         {
             m_mutations++;
-            interpTime = 0f;
+            m_interpTimer.stopTimer();
         }
     }
 

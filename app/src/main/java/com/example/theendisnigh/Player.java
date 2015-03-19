@@ -16,17 +16,19 @@ public class Player extends Collidable implements MovedSubscriber
     private boolean m_shooting = false;
     private Sprite m_playerSprite;
     private Bitmap m_playerImage;
-    private int m_health = 3;
-    private final long SHOOT_PERIOD = 200L; // Adjust to suit timing. We could alter this depending on what weapons the player has
-    private long lastTime = System.currentTimeMillis() - SHOOT_PERIOD;
+    private int m_lives = 3;
+    private int m_bonusLives = 1;
+    private final double SHOOT_PERIOD = 200.0; // Adjust to suit timing. We could alter this depending on what weapons the player has
+    //private long lastTime = System.nanoTime()/1000 - SHOOT_PERIOD;
     private Mutator m_currentMutator;
+    private Timer m_timer;
 
 	public Player()
 	{
 		super();
 	}
 
-	public Player(float xPos, float yPos)
+	public Player(float xPos, float yPos, MutatorConfig poisonConfig, MutatorConfig shieldConfig)
 	{
 		super(xPos, yPos);
         Vector2F m_startPos = new Vector2F(0, 0);
@@ -35,13 +37,14 @@ public class Player extends Collidable implements MovedSubscriber
 		m_radius = 32f;
         MOVEMENT_SPEED = 10f;
         m_isActive = true;
+        m_timer = new Timer();
         m_poisonCollide = new Mutator[NUM_COLLIDERS];
         for(int i = 0; i < NUM_COLLIDERS; i++)
         {
-            m_poisonCollide[i] = new Mutator(Mutator.MutatorType.POISON);
+            m_poisonCollide[i] = new Mutator(poisonConfig);
             m_poisonCollide[i].m_isActive = false;
         }
-        m_currentMutator = new Mutator(Mutator.MutatorType.SHIELD);
+        m_currentMutator = new Mutator(shieldConfig);
         m_currentMutator.activate();
 	}
 
@@ -49,23 +52,13 @@ public class Player extends Collidable implements MovedSubscriber
     {
         m_playerImage = Bitmap.createScaledBitmap(s, (int)m_radius*2, (int)m_radius*2, true);
     }
-    public void setMutatorSprites(Mutator.MutatorType m, Bitmap s)
-    {
-        m_currentMutator.setMutatorImage(m, s);
-        if(m == Mutator.MutatorType.POISON) {
-            for (int i = 0; i < NUM_COLLIDERS; i++) {
-                m_poisonCollide[i].setMutatorImage(m, s);
-                m_poisonCollide[i].setType(m);
-            }
-        }
-    }
     public boolean playerHit()
     {
         m_isActive = false;
-        m_health--;
+        m_lives--;
         m_velocity.x = 0;
         m_velocity.y = 0;
-        if(m_health <= 0)
+        if(m_lives <= 0)
         {
             m_currentMutator.m_isActive = false;
             return true;
@@ -74,7 +67,7 @@ public class Player extends Collidable implements MovedSubscriber
     }
     public int getHealth()
     {
-        return m_health;
+        return m_lives;
     }
 	public void onMoved(PointF movement, float angle)
 	{
@@ -94,11 +87,10 @@ public class Player extends Collidable implements MovedSubscriber
 		if(movement.length() > 0.1f && m_isActive)
 		{
 			super.setRotation(angle);
-            long currTime = System.currentTimeMillis();
-
-            if((currTime - lastTime) >= SHOOT_PERIOD)
+            m_timer.startTimer();
+            if(m_timer.getStartTimerMillis() >= SHOOT_PERIOD)
             {
-                lastTime = currTime;
+                m_timer.stopTimer();
                 m_shouldCreateBullet = true;
             }
 		}
@@ -171,10 +163,15 @@ public class Player extends Collidable implements MovedSubscriber
                 }
             }
         }
+        checkBonusLives();
 	}
-    public void addHealth()
+    private void checkBonusLives()
     {
-        m_health++;
+        if(m_currentScore >= 10000 * m_bonusLives)
+        {
+            m_bonusLives++;
+            m_lives++;
+        }
     }
     public PointF getRadialPosition()
     {
@@ -184,15 +181,10 @@ public class Player extends Collidable implements MovedSubscriber
     {
         return m_rotation;
     }
+
     public void setMutatorFromConfig(MutatorConfig config)
     {
         m_currentMutator.setFromConfig(config);
-        m_currentMutator.activate();
-        m_currentMutator.setPosition(m_position.x, m_position.y);
-    }
-    public void setPlayerMutator(Mutator.MutatorType m)
-    {
-        m_currentMutator.setType(m);
         m_currentMutator.activate();
         m_currentMutator.setPosition(m_position.x, m_position.y);
     }

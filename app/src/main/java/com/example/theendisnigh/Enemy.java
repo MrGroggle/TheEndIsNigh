@@ -6,6 +6,8 @@ import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Harry on 06/02/2015.
  */
@@ -31,8 +33,8 @@ public class Enemy extends Collidable
     private boolean m_frozen = false;
 
     private int m_fireDamage = 0;
-
-    private long lastTime = System.currentTimeMillis() - 200L;
+    private Timer m_timer;
+    //private long lastTime = System.nanoTime()/1000 - 200L;
 
     public Enemy()
     {
@@ -43,6 +45,7 @@ public class Enemy extends Collidable
         super(xPos, yPos);
         m_radius = 20f;
         m_isActive = false;
+        m_timer = new Timer();
     }
 
     public void update()
@@ -56,7 +59,11 @@ public class Enemy extends Collidable
         }
         if(m_isActive && m_onFire)
         {
-            if(checkDeadAfterHit(m_fireDamage, false)) {
+            if(m_frozen)
+            {
+                m_frozen = false;
+            }
+            if(checkDeadAfterDebuff(m_fireDamage, false)) {
                 if (m_target instanceof Player) {
                     ((Player) m_target).m_currentScore += m_score;
                     m_isActive = false;
@@ -136,19 +143,30 @@ public class Enemy extends Collidable
             c.restore();
         }
     }
-    public boolean checkDeadAfterHit(int damage, boolean shouldSlow)
+    public boolean checkDeadAfterDebuff(int damage, boolean shouldSlow)
     {
-        long currTime = System.currentTimeMillis();
-
-        if((currTime - lastTime) >= 200L)
+        m_timer.startTimer();
+        if(m_timer.getStartTimerMillis() >= 500.0)
         {
-            lastTime = currTime;
+            //lastTime = currTime;
             m_health-=damage;
             slowEnemy(shouldSlow);
             if(m_health <= 0)
             {
                 m_isActive = false;
             }
+            m_timer.stopTimer();
+        }
+        return !m_isActive;
+    }
+
+    public boolean checkDeadAfterHit(int damage, boolean shouldSlow)
+    {
+        m_health-=damage;
+        slowEnemy(shouldSlow);
+        if(m_health <= 0)
+        {
+            m_isActive = false;
         }
         return !m_isActive;
 
