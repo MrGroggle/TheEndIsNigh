@@ -45,7 +45,7 @@ public class Player extends Collidable implements MovedSubscriber
             m_poisonCollide[i].m_isActive = false;
         }
         m_currentMutator = new Mutator(shieldConfig);
-        m_currentMutator.activate();
+        m_currentMutator.m_isActive = true;
 	}
 
     public void setSprite(Bitmap s)
@@ -58,9 +58,9 @@ public class Player extends Collidable implements MovedSubscriber
         m_lives--;
         m_velocity.x = 0;
         m_velocity.y = 0;
+        m_currentMutator.m_isActive = false;
         if(m_lives <= 0)
         {
-            m_currentMutator.m_isActive = false;
             return true;
         }
         return false;
@@ -157,7 +157,7 @@ public class Player extends Collidable implements MovedSubscriber
                     if(!m_poisonCollide[i].m_isActive)
                     {
                         m_poisonCollide[i].setPosition(m_position.x, m_position.y);
-                        m_poisonCollide[i].activate();
+                        m_poisonCollide[i].m_isActive = true;
                         break;
                     }
                 }
@@ -185,7 +185,7 @@ public class Player extends Collidable implements MovedSubscriber
     public void setMutatorFromConfig(MutatorConfig config)
     {
         m_currentMutator.setFromConfig(config);
-        m_currentMutator.activate();
+        m_currentMutator.m_isActive = true;
         m_currentMutator.setPosition(m_position.x, m_position.y);
     }
     public Mutator getMutator()
@@ -193,8 +193,8 @@ public class Player extends Collidable implements MovedSubscriber
         return m_currentMutator;
     }
 
-    public boolean hasActiveShield()
+    public boolean hasInvulnerability()
     {
-        return m_currentMutator.m_isActive && m_currentMutator.getType() == Mutator.MutatorType.SHIELD;
+        return m_currentMutator.m_isActive && (m_currentMutator.getType() == Mutator.MutatorType.SHIELD || m_currentMutator.getType() == Mutator.MutatorType.FIRE);
     }
 }

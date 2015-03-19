@@ -49,18 +49,13 @@ public class Mutator extends Collidable {
         m_pulse = config.m_pulse;
     }
 
-    public void activate()
-    {
-        m_isActive = true;
-    }
-
     public boolean updateMutator()
     {
         boolean generateMutator = false;
 
         if(m_isActive) {
             if(m_canRotate) {
-                m_rotation+=0.5f;
+                updateRotation(0.5f);
                 super.update();
             }
             m_timer.startTimer();
@@ -76,6 +71,9 @@ public class Mutator extends Collidable {
                 m_isActive = false;
                 m_pulseCounter = 0;
             }
+        }else
+        {
+            m_timer.stopTimer();
         }
         return generateMutator;
     }
@@ -117,6 +115,4 @@ public class Mutator extends Collidable {
     {
         return m_type;
     }
-
-
 }

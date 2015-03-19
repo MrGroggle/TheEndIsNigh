@@ -303,15 +303,12 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
 
     public void playerCollision()
     {
-        //List<Collidable> returnCollidables = new ArrayList<Collidable>();
-        //m_quadTree.retrieve(returnCollidables, m_player);
-
         for(int i = 0; i < MAX_ENEMIES; i++)
         {
             if(m_enemyPool[i].m_isActive) {
                 if (m_player.checkCollision(m_enemyPool[i])) {
                     m_enemyPool[i].m_isActive = false;
-                    if (!m_player.hasActiveShield()) {
+                    if (!m_player.hasInvulnerability()) {
                         if (!m_player.playerHit()) {
                             postDelayed(new Runnable() {
                                 @Override
