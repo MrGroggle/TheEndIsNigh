@@ -143,6 +143,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
     private TextView m_livesUI;
 	private JoystickView m_moveStick;
 	private JoystickView m_fireStick;
+	public SoundManager m_soundManager;
 
 	private Projectile[] m_playerProjectiles;
     private Enemy[] m_enemyPool;
@@ -179,6 +180,7 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
         XMLPullParserHandler parser = new XMLPullParserHandler(context);
         m_spawner.setEnemyConfigs(parser.parseEnemyConfigs(context.getResources().getXml(R.xml.zombiedata)));
         m_mutateHandler.setMutatorConfigs(parser.parseMutatorConfigs(context.getResources().getXml(R.xml.mutatordata)));
+        m_soundManager = new SoundManager(context);
 	}
 
     private void init()

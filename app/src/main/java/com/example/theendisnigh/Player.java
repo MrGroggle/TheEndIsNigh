@@ -90,6 +90,7 @@ public class Player extends Collidable implements MovedSubscriber
             m_timer.startTimer();
             if(m_timer.getStartTimerMillis() >= SHOOT_PERIOD)
             {
+            	SoundManager.playAudio("shotgun");
                 m_timer.stopTimer();
                 m_shouldCreateBullet = true;
             }
