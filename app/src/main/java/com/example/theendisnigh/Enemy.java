@@ -30,6 +30,7 @@ public class Enemy extends Collidable
     private boolean m_slowed = false;
     private boolean m_onFire = false;
     private boolean m_frozen = false;
+    private boolean m_canSplit = false;
 
     private int m_fireDamage = 0;
     private Timer m_timer;
@@ -82,6 +83,7 @@ public class Enemy extends Collidable
         m_slowed = false;
         m_onFire = false;
         m_frozen = false;
+        m_canSplit = e.m_canSplit;
     }
 
     private Vector2F getBehaviour()
@@ -164,6 +166,10 @@ public class Enemy extends Collidable
         }
         return !m_isActive;
 
+    }
+    public boolean isSplitter()
+    {
+    	return m_canSplit;
     }
     public void setTarget(Collidable c)
     {

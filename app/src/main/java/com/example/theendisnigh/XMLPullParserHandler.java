@@ -17,8 +17,8 @@ import java.util.Map;
  */
 public class XMLPullParserHandler
 {
-    private ArrayList<EnemyConfig> enemyConfigs = new ArrayList<>();
-    private ArrayList<MutatorConfig> mutatorConfigs = new ArrayList<>();
+    private ArrayList<EnemyConfig> enemyConfigs = new ArrayList<EnemyConfig>();
+    private ArrayList<MutatorConfig> mutatorConfigs = new ArrayList<MutatorConfig>();
     private EnemyConfig m_enemyConfig;
     private MutatorConfig m_mutatorConfig;
     private String m_tempText;
@@ -32,7 +32,7 @@ public class XMLPullParserHandler
         typeLookup.put("poison", Mutator.MutatorType.POISON);
         typeLookup.put("poisonsource", Mutator.MutatorType.POISON_SOURCE);
     }
-    static Map<String, Mutator.MutatorType> typeLookup = new HashMap<>();
+    static Map<String, Mutator.MutatorType> typeLookup = new HashMap<String, Mutator.MutatorType>();
 
     public ArrayList<EnemyConfig> parseEnemyConfigs(XmlResourceParser xp)
     {
@@ -107,6 +107,10 @@ public class XMLPullParserHandler
                         else if(tagname.equalsIgnoreCase("colour"))
                         {
                             m_enemyConfig.m_paintTEMP = Color.parseColor(m_tempText);
+                        }
+                        else if(tagname.equalsIgnoreCase("cansplit"))
+                        {
+                            m_enemyConfig.m_canSplit = Boolean.parseBoolean(m_tempText);
                         }
                         break;
                     default:

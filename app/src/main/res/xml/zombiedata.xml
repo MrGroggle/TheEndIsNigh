@@ -12,6 +12,7 @@
         <StartWeight>100</StartWeight>
         <EndWeight>50</EndWeight>
         <PointValue>1</PointValue>
+        <CanSplit>false</CanSplit>
     </Zombie>
     <Zombie>
         <ID>1</ID>
@@ -25,6 +26,7 @@
         <StartWeight>0</StartWeight>
         <EndWeight>20</EndWeight>
         <PointValue>2</PointValue>
+        <CanSplit>false</CanSplit>
     </Zombie>
     <Zombie>
         <ID>2</ID>
@@ -37,7 +39,8 @@
         <Score>250</Score>
         <StartWeight>0</StartWeight>
         <EndWeight>20</EndWeight>
-        <PointValue>3</PointValue>
+        <PointValue>3</PointValue>        
+        <CanSplit>false</CanSplit>
     </Zombie>
     <Zombie>
         <ID>3</ID>
@@ -51,5 +54,6 @@
         <StartWeight>0</StartWeight>
         <EndWeight>10</EndWeight>
         <PointValue>5</PointValue>
+        <CanSplit>true</CanSplit>
     </Zombie>
 </ZombieData>

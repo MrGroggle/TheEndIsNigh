@@ -357,6 +357,10 @@ public class ScreenView extends SurfaceView implements SurfaceHolder.Callback
                             {
                                 m_player.m_currentScore += m_enemyPool[x].m_score;
                                 generatePickup(m_enemyPool[x]);
+                                if(m_enemyPool[x].isSplitter())
+                                {
+                                	m_spawner.spawnSplitterEnemies(m_enemyPool[x], m_enemyPool);
+                                }
                             }
                             m_playerProjectiles[i].m_isActive = false;
                         }

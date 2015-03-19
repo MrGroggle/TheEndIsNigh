@@ -23,7 +23,7 @@ public class EnemySpawner
     {
         m_fieldWidth = xWidth + 40;
         m_fieldHeight = yWidth + 40;
-        m_spawnLocations = new ArrayList<>();
+        m_spawnLocations = new ArrayList<Vector2F>();
         m_timer = new Timer();
         m_interpTimer = new Timer();
         setEnemySpawns();
@@ -99,6 +99,24 @@ public class EnemySpawner
                 }
             }
         }
+    }
+    
+    public void spawnSplitterEnemies(Collidable c, Enemy[] e)
+    {
+    	for(int i = -1; i < 2; i++)
+    	{
+    		for(Enemy col : e)
+            {
+                if(!col.m_isActive)
+                {
+                    col.setFromConfig(getRandomEnemy());
+                    col.m_position.x = c.m_position.x + i*10;
+                    col.m_position.y = c.m_position.y + i*10;
+                    col.m_isActive = true;
+                    break;
+                }
+            }
+    	}
     }
 
     public void setFieldDimensions(int w, int h)

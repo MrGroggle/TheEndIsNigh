@@ -18,4 +18,5 @@ public class EnemyConfig extends ConfigBase
     public int m_id;
     public String m_tag;
     public int m_paintTEMP;
+    public boolean m_canSplit;
 }
